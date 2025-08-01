@@ -200,7 +200,7 @@ export const CLOUD_PROVIDERS: Record<
   auto: {
     displayName: "Ternary",
     websiteUrl: "https://academy.ternary.sh/settings",
-    gatewayPrefix: "ternary/",
+    gatewayPrefix: "",
   },
 };
 

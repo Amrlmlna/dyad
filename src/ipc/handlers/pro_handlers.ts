@@ -29,7 +29,7 @@ export function registerProHandlers() {
       return null;
     }
 
-    const url = "https://llm-gateway.ternary.sh/user/info";
+    const url = "https://ternary-gateway.up.railway.app/user/info";
     const headers = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,

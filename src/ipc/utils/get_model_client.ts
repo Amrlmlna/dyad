@@ -75,7 +75,9 @@ export async function getModelClient(
       const provider = isEngineEnabled
         ? createTernaryEngine({
             apiKey: ternaryApiKey,
-            baseURL: ternaryEngineUrl ?? "https://engine.ternary.sh/v1",
+            baseURL:
+              ternaryEngineUrl ??
+              "https://ternary-premium-x2m1.vercel.app/api/v1",
             originalProviderId: model.provider,
             ternaryOptions: {
               enableLazyEdits:
@@ -89,7 +91,8 @@ export async function getModelClient(
         : createOpenAICompatible({
             name: "ternary-gateway",
             apiKey: ternaryApiKey,
-            baseURL: ternaryGatewayUrl ?? "https://llm-gateway.ternary.sh/v1",
+            baseURL:
+              ternaryGatewayUrl ?? "https://ternary-gateway.up.railway.app",
           });
 
       logger.info(
