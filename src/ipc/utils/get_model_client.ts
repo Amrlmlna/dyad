@@ -10,12 +10,12 @@ import { getEnvVar } from "./read_env";
 import log from "electron-log";
 import { getLanguageModelProviders } from "../shared/language_model_helpers";
 import { LanguageModelProvider } from "../ipc_types";
-import { createDyadEngine } from "./llm_engine_provider";
+import { createTernaryEngine } from "./llm_engine_provider";
 
 import { LM_STUDIO_BASE_URL } from "./lm_studio_utils";
 
-const dyadEngineUrl = process.env.DYAD_ENGINE_URL;
-const dyadGatewayUrl = process.env.DYAD_GATEWAY_URL;
+const ternaryEngineUrl = process.env.DYAD_ENGINE_URL;
+const ternaryGatewayUrl = process.env.DYAD_GATEWAY_URL;
 
 const AUTO_MODELS = [
   {
@@ -53,7 +53,7 @@ export async function getModelClient(
 }> {
   const allProviders = await getLanguageModelProviders();
 
-  const dyadApiKey = settings.providerSettings?.auto?.apiKey?.value;
+  const ternaryApiKey = settings.providerSettings?.auto?.apiKey?.value;
 
   // --- Handle specific provider ---
   const providerConfig = allProviders.find((p) => p.id === model.provider);
@@ -62,22 +62,22 @@ export async function getModelClient(
     throw new Error(`Configuration not found for provider: ${model.provider}`);
   }
 
-  // Handle Dyad Pro override
-  if (dyadApiKey && settings.enableDyadPro) {
-    // Check if the selected provider supports Dyad Pro (has a gateway prefix) OR
+  // Handle Ternary Pro override
+  if (ternaryApiKey && settings.enableTernaryPro) {
+    // Check if the selected provider supports Ternary Pro (has a gateway prefix) OR
     // we're using local engine.
     // IMPORTANT: some providers like OpenAI have an empty string gateway prefix,
     // so we do a nullish and not a truthy check here.
-    if (providerConfig.gatewayPrefix != null || dyadEngineUrl) {
+    if (providerConfig.gatewayPrefix != null || ternaryEngineUrl) {
       const isEngineEnabled =
         settings.enableProSmartFilesContextMode ||
         settings.enableProLazyEditsMode;
       const provider = isEngineEnabled
-        ? createDyadEngine({
-            apiKey: dyadApiKey,
-            baseURL: dyadEngineUrl ?? "https://engine.dyad.sh/v1",
+        ? createTernaryEngine({
+            apiKey: ternaryApiKey,
+            baseURL: ternaryEngineUrl ?? "https://engine.ternary.sh/v1",
             originalProviderId: model.provider,
-            dyadOptions: {
+            ternaryOptions: {
               enableLazyEdits:
                 settings.selectedChatMode === "ask"
                   ? false
@@ -87,21 +87,21 @@ export async function getModelClient(
             settings,
           })
         : createOpenAICompatible({
-            name: "dyad-gateway",
-            apiKey: dyadApiKey,
-            baseURL: dyadGatewayUrl ?? "https://llm-gateway.dyad.sh/v1",
+            name: "ternary-gateway",
+            apiKey: ternaryApiKey,
+            baseURL: ternaryGatewayUrl ?? "https://llm-gateway.ternary.sh/v1",
           });
 
       logger.info(
-        `\x1b[1;97;44m Using Dyad Pro API key for model: ${model.name}. engine_enabled=${isEngineEnabled} \x1b[0m`,
+        `\x1b[1;97;44m Using Ternary Pro API key for model: ${model.name}. engine_enabled=${isEngineEnabled} \x1b[0m`,
       );
       if (isEngineEnabled) {
         logger.info(
-          `\x1b[1;30;42m Using Dyad Pro engine: ${dyadEngineUrl ?? "<prod>"} \x1b[0m`,
+          `\x1b[1;30;42m Using Ternary Pro engine: ${ternaryEngineUrl ?? "<prod>"} \x1b[0m`,
         );
       } else {
         logger.info(
-          `\x1b[1;30;43m Using Dyad Pro gateway: ${dyadGatewayUrl ?? "<prod>"} \x1b[0m`,
+          `\x1b[1;30;43m Using Ternary Pro gateway: ${ternaryGatewayUrl ?? "<prod>"} \x1b[0m`,
         );
       }
       // Do not use free variant (for openrouter).
@@ -124,7 +124,7 @@ export async function getModelClient(
       };
     } else {
       logger.warn(
-        `Dyad Pro enabled, but provider ${model.provider} does not have a gateway prefix defined. Falling back to direct provider connection.`,
+        `Ternary Pro enabled, but provider ${model.provider} does not have a gateway prefix defined. Falling back to direct provider connection.`,
       );
       // Fall through to regular provider logic if gateway prefix is missing
     }

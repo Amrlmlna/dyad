@@ -2,7 +2,7 @@ import { db } from "../../db";
 import { chats, messages } from "../../db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
-import { getDyadAppPath } from "../../paths/paths";
+import { getTernaryAppPath } from "../../paths/paths";
 import path from "node:path";
 import git from "isomorphic-git";
 import { safeJoin } from "../utils/path_utils";
@@ -20,12 +20,12 @@ import { gitCommit } from "../utils/git_utils";
 import { readSettings } from "@/main/settings";
 import { writeMigrationFile } from "../utils/file_utils";
 import {
-  getDyadWriteTags,
-  getDyadRenameTags,
-  getDyadDeleteTags,
-  getDyadAddDependencyTags,
-  getDyadExecuteSqlTags,
-} from "../utils/dyad_tag_parser";
+  getTernaryWriteTags,
+  getTernaryRenameTags,
+  getTernaryDeleteTags,
+  getTernaryAddDependencyTags,
+  getTernaryExecuteSqlTags,
+} from "../utils/ternary_tag_parser";
 import { FileUploadsState } from "../utils/file_uploads_state";
 
 const readFile = fs.promises.readFile;
@@ -81,7 +81,7 @@ export async function processFullResponseActions(
   }
 
   const settings: UserSettings = readSettings();
-  const appPath = getDyadAppPath(chatWithApp.app.path);
+  const appPath = getTernaryAppPath(chatWithApp.app.path);
   const writtenFiles: string[] = [];
   const renamedFiles: string[] = [];
   const deletedFiles: string[] = [];
@@ -92,12 +92,13 @@ export async function processFullResponseActions(
 
   try {
     // Extract all tags
-    const dyadWriteTags = getDyadWriteTags(fullResponse);
-    const dyadRenameTags = getDyadRenameTags(fullResponse);
-    const dyadDeletePaths = getDyadDeleteTags(fullResponse);
-    const dyadAddDependencyPackages = getDyadAddDependencyTags(fullResponse);
-    const dyadExecuteSqlQueries = chatWithApp.app.supabaseProjectId
-      ? getDyadExecuteSqlTags(fullResponse)
+    const ternaryWriteTags = getTernaryWriteTags(fullResponse);
+    const ternaryRenameTags = getTernaryRenameTags(fullResponse);
+    const ternaryDeletePaths = getTernaryDeleteTags(fullResponse);
+    const ternaryAddDependencyPackages =
+      getTernaryAddDependencyTags(fullResponse);
+    const ternaryExecuteSqlQueries = chatWithApp.app.supabaseProjectId
+      ? getTernaryExecuteSqlTags(fullResponse)
       : [];
 
     const message = await db.query.messages.findFirst({
@@ -114,8 +115,8 @@ export async function processFullResponseActions(
     }
 
     // Handle SQL execution tags
-    if (dyadExecuteSqlQueries.length > 0) {
-      for (const query of dyadExecuteSqlQueries) {
+    if (ternaryExecuteSqlQueries.length > 0) {
+      for (const query of ternaryExecuteSqlQueries) {
         try {
           await executeSupabaseSql({
             supabaseProjectId: chatWithApp.app.supabaseProjectId!,
@@ -145,20 +146,20 @@ export async function processFullResponseActions(
           });
         }
       }
-      logger.log(`Executed ${dyadExecuteSqlQueries.length} SQL queries`);
+      logger.log(`Executed ${ternaryExecuteSqlQueries.length} SQL queries`);
     }
 
     // TODO: Handle add dependency tags
-    if (dyadAddDependencyPackages.length > 0) {
+    if (ternaryAddDependencyPackages.length > 0) {
       try {
         await executeAddDependency({
-          packages: dyadAddDependencyPackages,
+          packages: ternaryAddDependencyPackages,
           message: message,
           appPath,
         });
       } catch (error) {
         errors.push({
-          message: `Failed to add dependencies: ${dyadAddDependencyPackages.join(
+          message: `Failed to add dependencies: ${ternaryAddDependencyPackages.join(
             ", ",
           )}`,
           error: error,
@@ -188,7 +189,7 @@ export async function processFullResponseActions(
     //////////////////////
 
     // Process all file deletions
-    for (const filePath of dyadDeletePaths) {
+    for (const filePath of ternaryDeletePaths) {
       const fullFilePath = safeJoin(appPath, filePath);
 
       // Delete the file if it exists
@@ -231,7 +232,7 @@ export async function processFullResponseActions(
     }
 
     // Process all file renames
-    for (const tag of dyadRenameTags) {
+    for (const tag of ternaryRenameTags) {
       const fromPath = safeJoin(appPath, tag.from);
       const toPath = safeJoin(appPath, tag.to);
 
@@ -294,7 +295,7 @@ export async function processFullResponseActions(
     }
 
     // Process all file writes
-    for (const tag of dyadWriteTags) {
+    for (const tag of ternaryWriteTags) {
       const filePath = tag.path;
       let content: string | Buffer = tag.content;
       const fullFilePath = safeJoin(appPath, filePath);
@@ -352,7 +353,7 @@ export async function processFullResponseActions(
       writtenFiles.length > 0 ||
       renamedFiles.length > 0 ||
       deletedFiles.length > 0 ||
-      dyadAddDependencyPackages.length > 0;
+      ternaryAddDependencyPackages.length > 0;
 
     let uncommittedFiles: string[] = [];
     let extraFilesError: string | undefined;
@@ -375,16 +376,16 @@ export async function processFullResponseActions(
         changes.push(`renamed ${renamedFiles.length} file(s)`);
       if (deletedFiles.length > 0)
         changes.push(`deleted ${deletedFiles.length} file(s)`);
-      if (dyadAddDependencyPackages.length > 0)
+      if (ternaryAddDependencyPackages.length > 0)
         changes.push(
-          `added ${dyadAddDependencyPackages.join(", ")} package(s)`,
+          `added ${ternaryAddDependencyPackages.join(", ")} package(s)`,
         );
-      if (dyadExecuteSqlQueries.length > 0)
-        changes.push(`executed ${dyadExecuteSqlQueries.length} SQL queries`);
+      if (ternaryExecuteSqlQueries.length > 0)
+        changes.push(`executed ${ternaryExecuteSqlQueries.length} SQL queries`);
 
       let message = chatSummary
-        ? `[dyad] ${chatSummary} - ${changes.join(", ")}`
-        : `[dyad] ${changes.join(", ")}`;
+        ? `[ternary] ${chatSummary} - ${changes.join(", ")}`
+        : `[ternary] ${changes.join(", ")}`;
       // Use chat summary, if provided, or default for commit message
       let commitHash = await gitCommit({
         path: appPath,
@@ -408,17 +409,17 @@ export async function processFullResponseActions(
         try {
           commitHash = await gitCommit({
             path: appPath,
-            message: message + " + extra files edited outside of Dyad",
+            message: message + " + extra files edited outside of Ternary",
             amend: true,
           });
           logger.log(
-            `Amend commit with changes outside of dyad: ${uncommittedFiles.join(", ")}`,
+            `Amend commit with changes outside of ternary: ${uncommittedFiles.join(", ")}`,
           );
         } catch (error) {
           // Just log, but don't throw an error because the user can still
-          // commit these changes outside of Dyad if needed.
+          // commit these changes outside of Ternary if needed.
           logger.error(
-            `Failed to commit changes outside of dyad: ${uncommittedFiles.join(
+            `Failed to commit changes outside of ternary: ${uncommittedFiles.join(
               ", ",
             )}`,
           );
@@ -456,13 +457,13 @@ export async function processFullResponseActions(
     ${warnings
       .map(
         (warning) =>
-          `<dyad-output type="warning" message="${warning.message}">${warning.error}</dyad-output>`,
+          `<ternary-output type="warning" message="${warning.message}">${warning.error}</ternary-output>`,
       )
       .join("\n")}
     ${errors
       .map(
         (error) =>
-          `<dyad-output type="error" message="${error.message}">${error.error}</dyad-output>`,
+          `<ternary-output type="error" message="${error.message}">${error.error}</ternary-output>`,
       )
       .join("\n")}
     `;

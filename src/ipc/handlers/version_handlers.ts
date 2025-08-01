@@ -4,7 +4,7 @@ import { desc, eq, and, gt } from "drizzle-orm";
 import type { Version, BranchResult } from "../ipc_types";
 import fs from "node:fs";
 import path from "node:path";
-import { getDyadAppPath } from "../../paths/paths";
+import { getTernaryAppPath } from "../../paths/paths";
 import git, { type ReadCommitResult } from "isomorphic-git";
 import { withLock } from "../utils/lock_utils";
 import log from "electron-log";
@@ -26,7 +26,7 @@ export function registerVersionHandlers() {
       return [];
     }
 
-    const appPath = getDyadAppPath(app.path);
+    const appPath = getTernaryAppPath(app.path);
 
     // Just return an empty array if the app is not a git repo.
     if (!fs.existsSync(path.join(appPath, ".git"))) {
@@ -58,7 +58,7 @@ export function registerVersionHandlers() {
         throw new Error("App not found");
       }
 
-      const appPath = getDyadAppPath(app.path);
+      const appPath = getTernaryAppPath(app.path);
 
       // Return appropriate result if the app is not a git repo
       if (!fs.existsSync(path.join(appPath, ".git"))) {
@@ -100,7 +100,7 @@ export function registerVersionHandlers() {
           throw new Error("App not found");
         }
 
-        const appPath = getDyadAppPath(app.path);
+        const appPath = getTernaryAppPath(app.path);
 
         await gitCheckout({
           path: appPath,
@@ -173,7 +173,7 @@ export function registerVersionHandlers() {
           throw new Error("App not found");
         }
 
-        const appPath = getDyadAppPath(app.path);
+        const appPath = getTernaryAppPath(app.path);
 
         await gitCheckout({
           path: appPath,

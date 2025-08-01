@@ -198,9 +198,9 @@ export const CLOUD_PROVIDERS: Record<
     gatewayPrefix: "openrouter/",
   },
   auto: {
-    displayName: "Dyad",
-    websiteUrl: "https://academy.dyad.sh/settings",
-    gatewayPrefix: "dyad/",
+    displayName: "Ternary",
+    websiteUrl: "https://academy.ternary.sh/settings",
+    gatewayPrefix: "ternary/",
   },
 };
 

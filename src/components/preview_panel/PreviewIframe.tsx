@@ -193,7 +193,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
     if (!selectedComponentPreview) {
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
-          { type: "deactivate-dyad-component-selector" },
+          { type: "deactivate-ternary-component-selector" },
           "*",
         );
       }
@@ -209,12 +209,12 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
         return;
       }
 
-      if (event.data?.type === "dyad-component-selector-initialized") {
+      if (event.data?.type === "ternary-component-selector-initialized") {
         setIsComponentSelectorInitialized(true);
         return;
       }
 
-      if (event.data?.type === "dyad-component-selected") {
+      if (event.data?.type === "ternary-component-selected") {
         console.log("Component picked:", event.data);
         setSelectedComponentPreview(parseComponentSelection(event.data));
         setIsPicking(false);
@@ -332,8 +332,8 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
       iframeRef.current.contentWindow.postMessage(
         {
           type: newIsPicking
-            ? "activate-dyad-component-selector"
-            : "deactivate-dyad-component-selector",
+            ? "activate-ternary-component-selector"
+            : "deactivate-ternary-component-selector",
         },
         "*",
       );
@@ -590,7 +590,7 @@ export const PreviewIframe = ({ loading }: { loading: boolean }) => {
 function parseComponentSelection(data: any): ComponentSelection | null {
   if (
     !data ||
-    data.type !== "dyad-component-selected" ||
+    data.type !== "ternary-component-selected" ||
     typeof data.id !== "string" ||
     typeof data.name !== "string"
   ) {

@@ -11,7 +11,7 @@ import type {
 } from "../ipc_types";
 import fs from "node:fs";
 import path from "node:path";
-import { getDyadAppPath, getUserDataPath } from "../../paths/paths";
+import { getTernaryAppPath, getUserDataPath } from "../../paths/paths";
 import { spawn } from "node:child_process";
 import git from "isomorphic-git";
 import { promises as fsPromises } from "node:fs";
@@ -145,7 +145,7 @@ async function executeAppLocalNode({
         onStarted: (proxyUrl) => {
           safeSend(event.sender, "app:output", {
             type: "stdout",
-            message: `[dyad-proxy-server]started=[${proxyUrl}] original=[${urlMatch[1]}]`,
+            message: `[ternary-proxy-server]started=[${proxyUrl}] original=[${urlMatch[1]}]`,
             appId,
           });
         },
@@ -192,7 +192,7 @@ async function killProcessOnPort(port: number): Promise<void> {
 }
 
 export function registerAppHandlers() {
-  handle("restart-dyad", async () => {
+  handle("restart-ternary", async () => {
     app.relaunch();
     app.quit();
   });
@@ -204,7 +204,7 @@ export function registerAppHandlers() {
       params: CreateAppParams,
     ): Promise<{ app: any; chatId: number }> => {
       const appPath = params.name;
-      const fullAppPath = getDyadAppPath(appPath);
+      const fullAppPath = getTernaryAppPath(appPath);
       if (fs.existsSync(fullAppPath)) {
         throw new Error(`App already exists at: ${fullAppPath}`);
       }
@@ -247,7 +247,7 @@ export function registerAppHandlers() {
       // Create initial commit
       const commitHash = await gitCommit({
         path: fullAppPath,
-        message: "Init Dyad app",
+        message: "Init Ternary app",
       });
 
       // Update chat with initial commit hash
@@ -285,8 +285,8 @@ export function registerAppHandlers() {
         throw new Error("Original app not found.");
       }
 
-      const originalAppPath = getDyadAppPath(originalApp.path);
-      const newAppPath = getDyadAppPath(newAppName);
+      const originalAppPath = getTernaryAppPath(originalApp.path);
+      const newAppPath = getTernaryAppPath(newAppName);
 
       // 3. Copy the app folder
       try {
@@ -319,7 +319,7 @@ export function registerAppHandlers() {
         // Create initial commit
         await gitCommit({
           path: newAppPath,
-          message: "Init Dyad app",
+          message: "Init Ternary app",
         });
       }
 
@@ -352,7 +352,7 @@ export function registerAppHandlers() {
     }
 
     // Get app files
-    const appPath = getDyadAppPath(app.path);
+    const appPath = getTernaryAppPath(app.path);
     let files: string[] = [];
 
     try {
@@ -390,7 +390,7 @@ export function registerAppHandlers() {
     });
     return {
       apps: allApps,
-      appBasePath: getDyadAppPath("$APP_BASE_PATH"),
+      appBasePath: getTernaryAppPath("$APP_BASE_PATH"),
     };
   });
 
@@ -405,7 +405,7 @@ export function registerAppHandlers() {
         throw new Error("App not found");
       }
 
-      const appPath = getDyadAppPath(app.path);
+      const appPath = getTernaryAppPath(app.path);
       const fullPath = path.join(appPath, filePath);
 
       // Check if the path is within the app directory (security check)
@@ -462,7 +462,7 @@ export function registerAppHandlers() {
 
         logger.debug(`Starting app ${appId} in path ${app.path}`);
 
-        const appPath = getDyadAppPath(app.path);
+        const appPath = getTernaryAppPath(app.path);
         try {
           // Kill any orphaned process on port 32100 (in case previous run left it)
           await killProcessOnPort(32100);
@@ -573,7 +573,7 @@ export function registerAppHandlers() {
             throw new Error("App not found");
           }
 
-          const appPath = getDyadAppPath(app.path);
+          const appPath = getTernaryAppPath(app.path);
 
           // Remove node_modules if requested
           if (removeNodeModules) {
@@ -625,7 +625,7 @@ export function registerAppHandlers() {
         throw new Error("App not found");
       }
 
-      const appPath = getDyadAppPath(app.path);
+      const appPath = getTernaryAppPath(app.path);
       const fullPath = path.join(appPath, filePath);
 
       // Check if the path is within the app directory (security check)
@@ -716,7 +716,7 @@ export function registerAppHandlers() {
         }
 
         // Delete app files
-        const appPath = getDyadAppPath(app.path);
+        const appPath = getTernaryAppPath(app.path);
         try {
           await fsPromises.rm(appPath, { recursive: true, force: true });
         } catch (error: any) {
@@ -780,8 +780,8 @@ export function registerAppHandlers() {
           }
         }
 
-        const oldAppPath = getDyadAppPath(app.path);
-        const newAppPath = getDyadAppPath(appPath);
+        const oldAppPath = getTernaryAppPath(app.path);
+        const newAppPath = getTernaryAppPath(appPath);
         // Only move files if needed
         if (newAppPath !== oldAppPath) {
           // Move app files
@@ -901,11 +901,11 @@ export function registerAppHandlers() {
     // Doing this last because it's the most time-consuming and the least important
     // in terms of resetting the app state.
     logger.log("removing all app files...");
-    const dyadAppPath = getDyadAppPath(".");
-    if (fs.existsSync(dyadAppPath)) {
-      await fsPromises.rm(dyadAppPath, { recursive: true, force: true });
+    const ternaryAppPath = getTernaryAppPath(".");
+    if (fs.existsSync(ternaryAppPath)) {
+      await fsPromises.rm(ternaryAppPath, { recursive: true, force: true });
       // Recreate the base directory
-      await fsPromises.mkdir(dyadAppPath, { recursive: true });
+      await fsPromises.mkdir(ternaryAppPath, { recursive: true });
     }
     logger.log("all app files removed.");
     logger.log("reset all complete.");
@@ -928,7 +928,7 @@ export function registerAppHandlers() {
       throw new Error("App not found");
     }
 
-    const appPath = getDyadAppPath(app.path);
+    const appPath = getTernaryAppPath(app.path);
 
     return withLock(appId, async () => {
       try {

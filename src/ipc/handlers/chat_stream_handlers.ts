@@ -19,7 +19,7 @@ import {
   SUPABASE_AVAILABLE_SYSTEM_PROMPT,
   SUPABASE_NOT_AVAILABLE_SYSTEM_PROMPT,
 } from "../../prompts/supabase_prompt";
-import { getDyadAppPath } from "../../paths/paths";
+import { getTernaryAppPath } from "../../paths/paths";
 import { readSettings } from "../../main/settings";
 import type { ChatResponseEnd, ChatStreamParams } from "../ipc_types";
 import { extractCodebase, readFileWithCache } from "../../utils/codebase";
@@ -51,11 +51,11 @@ import { generateProblemReport } from "../processors/tsc";
 import { createProblemFixPrompt } from "@/shared/problem_prompt";
 import { AsyncVirtualFileSystem } from "../../../shared/VirtualFilesystem";
 import {
-  getDyadAddDependencyTags,
-  getDyadWriteTags,
-  getDyadDeleteTags,
-  getDyadRenameTags,
-} from "../utils/dyad_tag_parser";
+  getTernaryAddDependencyTags,
+  getTernaryWriteTags,
+  getTernaryDeleteTags,
+  getTernaryRenameTags,
+} from "../utils/ternary_tag_parser";
 import { fileExists } from "../utils/file_utils";
 import { FileUploadsState } from "../utils/file_uploads_state";
 
@@ -70,7 +70,7 @@ const activeStreams = new Map<number, AbortController>();
 const partialResponses = new Map<number, string>();
 
 // Directory for storing temporary files
-const TEMP_DIR = path.join(os.tmpdir(), "dyad-attachments");
+const TEMP_DIR = path.join(os.tmpdir(), "ternary-attachments");
 
 // Common helper functions
 const TEXT_FILE_EXTENSIONS = [
@@ -135,7 +135,7 @@ async function processStreamChunks({
         inThinkingBlock = true;
       }
 
-      chunk += escapeDyadTags(part.textDelta);
+      chunk += escapeTernaryTags(part.textDelta);
     }
 
     if (!chunk) {
@@ -250,7 +250,7 @@ export function registerChatStreamHandlers() {
               originalName: attachment.name,
             });
 
-            // Add instruction for AI to use dyad-write tag
+            // Add instruction for AI to use ternary-write tag
             attachmentInfo += `\n\nFile to upload to codebase: ${attachment.name} (file id: ${fileId})\n`;
           } else {
             // For chat-context, use the existing logic
@@ -258,8 +258,8 @@ export function registerChatStreamHandlers() {
             // If it's a text-based file, try to include the content
             if (await isTextFile(filePath)) {
               try {
-                attachmentInfo += `<dyad-text-attachment filename="${attachment.name}" type="${attachment.type}" path="${filePath}">
-                </dyad-text-attachment>
+                attachmentInfo += `<ternary-text-attachment filename="${attachment.name}" type="${attachment.type}" path="${filePath}">
+                </ternary-text-attachment>
                 \n\n`;
               } catch (err) {
                 logger.error(`Error reading file content: ${err}`);
@@ -276,7 +276,7 @@ export function registerChatStreamHandlers() {
         try {
           const componentFileContent = await readFile(
             path.join(
-              getDyadAppPath(chat.app.path),
+              getTernaryAppPath(chat.app.path),
               req.selectedComponent.relativePath,
             ),
             "utf8",
@@ -367,7 +367,7 @@ ${componentSnippet}
         // Normal AI processing for non-test prompts
         const settings = readSettings();
 
-        const appPath = getDyadAppPath(updatedChat.app.path);
+        const appPath = getTernaryAppPath(updatedChat.app.path);
         const chatContext = req.selectedComponent
           ? {
               contextPaths: [
@@ -442,7 +442,7 @@ ${componentSnippet}
         }
 
         let systemPrompt = constructSystemPrompt({
-          aiRules: await readAiRules(getDyadAppPath(updatedChat.app.path)),
+          aiRules: await readAiRules(getTernaryAppPath(updatedChat.app.path)),
           chatMode: settings.selectedChatMode,
         });
         if (
@@ -480,7 +480,7 @@ ${componentSnippet}
           );
         // If there's mixed attachments (e.g. some upload to codebase attachments and some upload images as chat context attachemnts)
         // we will just include the file upload system prompt, otherwise the AI gets confused and doesn't reliably
-        // print out the dyad-write tags.
+        // print out the ternary-write tags.
         // Usually, AI models will want to use the image as reference to generate code (e.g. UI mockups) anyways, so
         // it's not that critical to include the image analysis instructions.
         if (hasUploadedAttachments) {
@@ -488,14 +488,14 @@ ${componentSnippet}
   
 When files are attached to this conversation, upload them to the codebase using this exact format:
 
-<dyad-write path="path/to/destination/filename.ext" description="Upload file to codebase">
+<ternary-write path="path/to/destination/filename.ext" description="Upload file to codebase">
 DYAD_ATTACHMENT_X
-</dyad-write>
+</ternary-write>
 
 Example for file with id of DYAD_ATTACHMENT_0:
-<dyad-write path="src/components/Button.jsx" description="Upload file to codebase">
+<ternary-write path="src/components/Button.jsx" description="Upload file to codebase">
 DYAD_ATTACHMENT_0
-</dyad-write>
+</ternary-write>
 
   `;
         } else if (hasImageAttachments) {
@@ -534,7 +534,7 @@ This conversation includes one or more image attachments. When the user uploads 
             // and eats up extra tokens.
             content:
               settings.selectedChatMode === "ask"
-                ? removeDyadTags(removeNonEssentialTags(msg.content))
+                ? removeTernaryTags(removeNonEssentialTags(msg.content))
                 : removeNonEssentialTags(msg.content),
           })),
         ];
@@ -579,11 +579,11 @@ This conversation includes one or more image attachments. When the user uploads 
           chatMessages: CoreMessage[];
           modelClient: ModelClient;
         }) => {
-          const dyadRequestId = uuidv4();
+          const ternaryRequestId = uuidv4();
           if (isEngineEnabled) {
             logger.log(
               "sending AI request to engine with request id:",
-              dyadRequestId,
+              ternaryRequestId,
             );
           } else {
             logger.log("sending AI request");
@@ -594,10 +594,10 @@ This conversation includes one or more image attachments. When the user uploads 
             maxRetries: 2,
             model: modelClient.model,
             providerOptions: {
-              "dyad-engine": {
-                dyadRequestId,
+              "ternary-engine": {
+                ternaryRequestId,
               },
-              "dyad-gateway": getExtraProviderOptions(
+              "ternary-gateway": getExtraProviderOptions(
                 modelClient.builtinProviderId,
                 settings,
               ),
@@ -618,7 +618,7 @@ This conversation includes one or more image attachments. When the user uploads 
               }
               const message = errorMessage || JSON.stringify(error);
               const requestIdPrefix = isEngineEnabled
-                ? `[Request ID: ${dyadRequestId}] `
+                ? `[Request ID: ${ternaryRequestId}] `
                 : "";
               event.sender.send(
                 "chat:response:error",
@@ -688,16 +688,16 @@ This conversation includes one or more image attachments. When the user uploads 
           if (
             !abortController.signal.aborted &&
             settings.selectedChatMode !== "ask" &&
-            hasUnclosedDyadWrite(fullResponse)
+            hasUnclosedTernaryWrite(fullResponse)
           ) {
             let continuationAttempts = 0;
             while (
-              hasUnclosedDyadWrite(fullResponse) &&
+              hasUnclosedTernaryWrite(fullResponse) &&
               continuationAttempts < 2 &&
               !abortController.signal.aborted
             ) {
               logger.warn(
-                `Received unclosed dyad-write tag, attempting to continue, attempt #${continuationAttempts + 1}`,
+                `Received unclosed ternary-write tag, attempting to continue, attempt #${continuationAttempts + 1}`,
               );
               continuationAttempts++;
 
@@ -724,7 +724,7 @@ This conversation includes one or more image attachments. When the user uploads 
               }
             }
           }
-          const addDependencies = getDyadAddDependencyTags(fullResponse);
+          const addDependencies = getTernaryAddDependencyTags(fullResponse);
           if (
             !abortController.signal.aborted &&
             // If there are dependencies, we don't want to auto-fix problems
@@ -738,7 +738,7 @@ This conversation includes one or more image attachments. When the user uploads 
               // IF auto-fix is enabled
               let problemReport = await generateProblemReport({
                 fullResponse,
-                appPath: getDyadAppPath(updatedChat.app.path),
+                appPath: getTernaryAppPath(updatedChat.app.path),
               });
 
               let autoFixAttempts = 0;
@@ -749,14 +749,14 @@ This conversation includes one or more image attachments. When the user uploads 
                 autoFixAttempts < 2 &&
                 !abortController.signal.aborted
               ) {
-                fullResponse += `<dyad-problem-report summary="${problemReport.problems.length} problems">
+                fullResponse += `<ternary-problem-report summary="${problemReport.problems.length} problems">
 ${problemReport.problems
   .map(
     (problem) =>
       `<problem file="${escapeXml(problem.file)}" line="${problem.line}" column="${problem.column}" code="${problem.code}">${escapeXml(problem.message)}</problem>`,
   )
   .join("\n")}
-</dyad-problem-report>`;
+</ternary-problem-report>`;
 
                 logger.info(
                   `Attempting to auto-fix problems, attempt #${autoFixAttempts + 1}`,
@@ -765,15 +765,15 @@ ${problemReport.problems
                 const problemFixPrompt = createProblemFixPrompt(problemReport);
 
                 const virtualFileSystem = new AsyncVirtualFileSystem(
-                  getDyadAppPath(updatedChat.app.path),
+                  getTernaryAppPath(updatedChat.app.path),
                   {
                     fileExists: (fileName: string) => fileExists(fileName),
                     readFile: (fileName: string) => readFileWithCache(fileName),
                   },
                 );
-                const writeTags = getDyadWriteTags(fullResponse);
-                const renameTags = getDyadRenameTags(fullResponse);
-                const deletePaths = getDyadDeleteTags(fullResponse);
+                const writeTags = getTernaryWriteTags(fullResponse);
+                const renameTags = getTernaryRenameTags(fullResponse);
+                const deletePaths = getTernaryDeleteTags(fullResponse);
                 virtualFileSystem.applyResponseChanges({
                   deletePaths,
                   renameTags,
@@ -836,7 +836,7 @@ ${problemReport.problems
 
                 problemReport = await generateProblemReport({
                   fullResponse,
-                  appPath: getDyadAppPath(updatedChat.app.path),
+                  appPath: getTernaryAppPath(updatedChat.app.path),
                 });
               }
             } catch (error) {
@@ -884,9 +884,9 @@ ${problemReport.problems
 
       // Only save the response and process it if we weren't aborted
       if (!abortController.signal.aborted && fullResponse) {
-        // Scrape from: <dyad-chat-summary>Renaming profile file</dyad-chat-title>
+        // Scrape from: <ternary-chat-summary>Renaming profile file</ternary-chat-title>
         const chatTitle = fullResponse.match(
-          /<dyad-chat-summary>(.*?)<\/dyad-chat-summary>/,
+          /<ternary-chat-summary>(.*?)<\/ternary-chat-summary>/,
         );
         if (chatTitle) {
           await db
@@ -1056,7 +1056,7 @@ async function replaceTextAttachmentWithContent(
       // Replace the placeholder tag with the full content
       const escapedPath = filePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const tagPattern = new RegExp(
-        `<dyad-text-attachment filename="[^"]*" type="[^"]*" path="${escapedPath}">\\s*<\\/dyad-text-attachment>`,
+        `<ternary-text-attachment filename="[^"]*" type="[^"]*" path="${escapedPath}">\\s*<\\/ternary-text-attachment>`,
         "g",
       );
 
@@ -1149,18 +1149,18 @@ function removeThinkingTags(text: string): string {
 
 export function removeProblemReportTags(text: string): string {
   const problemReportRegex =
-    /<dyad-problem-report[^>]*>[\s\S]*?<\/dyad-problem-report>/g;
+    /<ternary-problem-report[^>]*>[\s\S]*?<\/ternary-problem-report>/g;
   return text.replace(problemReportRegex, "").trim();
 }
 
-export function removeDyadTags(text: string): string {
-  const dyadRegex = /<dyad-[^>]*>[\s\S]*?<\/dyad-[^>]*>/g;
-  return text.replace(dyadRegex, "").trim();
+export function removeTernaryTags(text: string): string {
+  const ternaryRegex = /<ternary-[^>]*>[\s\S]*?<\/ternary-[^>]*>/g;
+  return text.replace(ternaryRegex, "").trim();
 }
 
-export function hasUnclosedDyadWrite(text: string): boolean {
-  // Find the last opening dyad-write tag
-  const openRegex = /<dyad-write[^>]*>/g;
+export function hasUnclosedTernaryWrite(text: string): boolean {
+  // Find the last opening ternary-write tag
+  const openRegex = /<ternary-write[^>]*>/g;
   let lastOpenIndex = -1;
   let match;
 
@@ -1175,19 +1175,21 @@ export function hasUnclosedDyadWrite(text: string): boolean {
 
   // Look for a closing tag after the last opening tag
   const textAfterLastOpen = text.substring(lastOpenIndex);
-  const hasClosingTag = /<\/dyad-write>/.test(textAfterLastOpen);
+  const hasClosingTag = /<\/ternary-write>/.test(textAfterLastOpen);
 
   return !hasClosingTag;
 }
 
-function escapeDyadTags(text: string): string {
-  // Escape dyad tags in reasoning content
+function escapeTernaryTags(text: string): string {
+  // Escape ternary tags in reasoning content
   // We are replacing the opening tag with a look-alike character
-  // to avoid issues where thinking content includes dyad tags
+  // to avoid issues where thinking content includes ternary tags
   // and are mishandled by:
   // 1. FE markdown parser
   // 2. Main process response processor
-  return text.replace(/<dyad/g, "＜dyad").replace(/<\/dyad/g, "＜/dyad");
+  return text
+    .replace(/<ternary/g, "＜ternary")
+    .replace(/<\/ternary/g, "＜/ternary");
 }
 
 const CODEBASE_PROMPT_PREFIX = "This is my codebase.";

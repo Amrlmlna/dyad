@@ -127,22 +127,22 @@ export function TokenBar({ chatId }: TokenBarProps) {
       </TooltipProvider>
       {error && <div className="text-red-500 text-xs mt-1">{error}</div>}
       {(!settings?.enableProSmartFilesContextMode ||
-        !settings?.enableDyadPro) && (
+        !settings?.enableTernaryPro) && (
         <div className="text-xs text-center text-muted-foreground mt-2">
           Optimize your tokens with{" "}
           <a
             onClick={() =>
-              settings?.enableDyadPro
+              settings?.enableTernaryPro
                 ? IpcClient.getInstance().openExternalUrl(
-                    "https://www.dyad.sh/docs/guides/ai-models/pro-modes#smart-context",
+                    "https://www.ternary.sh/docs/guides/ai-models/pro-modes#smart-context",
                   )
                 : IpcClient.getInstance().openExternalUrl(
-                    "https://dyad.sh/pro#ai",
+                    "https://ternary.sh/pro#ai",
                   )
             }
             className="text-blue-500 dark:text-blue-400 cursor-pointer hover:underline"
           >
-            Dyad Pro's Smart Context
+            Ternary Pro's Smart Context
           </a>
         </div>
       )}

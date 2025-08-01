@@ -14,7 +14,7 @@
 - text: file.png
 - img
 - text: "new/image/file.png Summary: Uploaded image to codebase"
-- paragraph: "[[dyad-dump-path=*]]"
+- paragraph: "[[ternary-dump-path=*]]"
 - img
 - text: Approved
 - button "Undo":

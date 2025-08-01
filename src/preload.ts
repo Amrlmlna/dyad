@@ -99,7 +99,7 @@ const validInvokeChannels = [
   "open-ios",
   "open-android",
   "check-problems",
-  "restart-dyad",
+  "restart-ternary",
   "get-templates",
   // Test-only channels
   // These should ALWAYS be guarded with IS_TEST_BUILD in the main process.

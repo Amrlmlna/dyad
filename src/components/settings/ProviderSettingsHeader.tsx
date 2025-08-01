@@ -16,21 +16,21 @@ interface ProviderSettingsHeaderProps {
   isLoading: boolean;
   hasFreeTier?: boolean;
   providerWebsiteUrl?: string;
-  isDyad: boolean;
+  isTernary: boolean;
   onBackClick: () => void;
 }
 
 function getKeyButtonText({
   isConfigured,
-  isDyad,
+  isTernary,
 }: {
   isConfigured: boolean;
-  isDyad: boolean;
+  isTernary: boolean;
 }) {
-  if (isDyad) {
+  if (isTernary) {
     return isConfigured
-      ? "Manage Dyad Pro Subscription"
-      : "Setup Dyad Pro Subscription";
+      ? "Manage Ternary Pro Subscription"
+      : "Setup Ternary Pro Subscription";
   }
   return isConfigured ? "Manage API Keys" : "Setup API Key";
 }
@@ -41,7 +41,7 @@ export function ProviderSettingsHeader({
   isLoading,
   hasFreeTier,
   providerWebsiteUrl,
-  isDyad,
+  isTernary,
   onBackClick,
 }: ProviderSettingsHeaderProps) {
   const handleGetApiKeyClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -106,7 +106,7 @@ export function ProviderSettingsHeader({
           ) : (
             <KeyRound className="mr-2 h-4 w-4" />
           )}
-          {getKeyButtonText({ isConfigured, isDyad })}
+          {getKeyButtonText({ isConfigured, isTernary })}
           <ExternalLink className="ml-2 h-4 w-4" />
         </Button>
       )}
