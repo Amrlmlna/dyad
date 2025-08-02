@@ -1,4 +1,4 @@
-import { SendIcon, StopCircleIcon } from "lucide-react";
+import { SendIcon, StopCircleIcon, Paperclip } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef } from "react";
 
@@ -9,7 +9,6 @@ import { useStreamChat } from "@/hooks/useStreamChat";
 import { useAttachments } from "@/hooks/useAttachments";
 import { AttachmentsList } from "./AttachmentsList";
 import { DragDropOverlay } from "./DragDropOverlay";
-import { FileAttachmentDropdown } from "./FileAttachmentDropdown";
 import { usePostHog } from "posthog-js/react";
 import { HomeSubmitOptions } from "@/pages/home";
 import { ChatInputControls } from "../ChatInputControls";
@@ -29,8 +28,10 @@ export function HomeChatInput({
   // Use the attachments hook
   const {
     attachments,
+    fileInputRef,
     isDraggingOver,
-    handleFileSelect,
+    handleAttachmentClick,
+    handleFileChange,
     removeAttachment,
     handleDragOver,
     handleDragLeave,
@@ -81,7 +82,7 @@ export function HomeChatInput({
     <>
       <div className="p-4" data-testid="home-chat-input-container">
         <div
-          className={`relative flex flex-col space-y-2 border border-border rounded-lg bg-(--background-lighter) shadow-sm ${
+          className={`relative flex flex-col space-y-2 neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset ${
             isDraggingOver ? "ring-2 ring-blue-500 border-blue-500" : ""
           }`}
           onDragOver={handleDragOver}
@@ -110,16 +111,27 @@ export function HomeChatInput({
               disabled={isStreaming} // Should ideally reflect if *any* stream is happening
             />
 
-            {/* File attachment dropdown */}
-            <FileAttachmentDropdown
-              className="mt-1 mr-1"
-              onFileSelect={handleFileSelect}
+            {/* File attachment button */}
+            <button
+              onClick={handleAttachmentClick}
+              className="px-2 py-2 mt-1 mr-1 neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset hover:opacity-95 active:scale-[0.98] text-(--sidebar-accent-fg) rounded-lg disabled:opacity-50"
               disabled={isStreaming}
+              title="Attach files"
+            >
+              <Paperclip size={20} />
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              multiple
+              accept=".jpg,.jpeg,.png,.gif,.webp,.txt,.md,.js,.ts,.html,.css,.json,.csv"
             />
 
             {isStreaming ? (
               <button
-                className="px-2 py-2 mt-1 mr-2 text-(--sidebar-accent-fg) rounded-lg opacity-50 cursor-not-allowed" // Indicate disabled state
+                className="px-2 py-2 mt-1 mr-2 neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset hover:opacity-95 active:scale-[0.98] text-(--sidebar-accent-fg) rounded-lg opacity-50 cursor-not-allowed" // Indicate disabled state
                 title="Cancel generation (unavailable here)"
               >
                 <StopCircleIcon size={20} />
@@ -128,7 +140,7 @@ export function HomeChatInput({
               <button
                 onClick={handleCustomSubmit}
                 disabled={!inputValue.trim() && attachments.length === 0}
-                className="px-2 py-2 mt-1 mr-2 hover:bg-(--background-darkest) text-(--sidebar-accent-fg) rounded-lg disabled:opacity-50"
+                className="px-2 py-2 mt-1 mr-2 neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset hover:opacity-95 active:scale-[0.98] text-(--sidebar-accent-fg) rounded-lg disabled:opacity-50"
                 title="Send message"
               >
                 <SendIcon size={20} />

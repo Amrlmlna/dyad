@@ -110,7 +110,7 @@ export function ProviderSettingsGrid() {
             return (
               <Card
                 key={provider.id}
-                className="relative transition-all hover:shadow-md border-border"
+                className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-transparent hover:border-primary transition-all"
               >
                 <CardHeader
                   className="p-4 cursor-pointer"
@@ -174,7 +174,7 @@ export function ProviderSettingsGrid() {
 
         {/* Add custom provider button */}
         <Card
-          className="cursor-pointer transition-all hover:shadow-md border-border border-dashed hover:border-primary/70"
+          className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-transparent hover:border-primary transition-all"
           onClick={() => setIsDialogOpen(true)}
         >
           <CardHeader className="p-4 flex flex-col items-center justify-center h-full">

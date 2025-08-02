@@ -71,7 +71,7 @@ export default function SettingsPage() {
 
           <div
             id="provider-settings"
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm"
+            className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset"
           >
             <ProviderSettingsGrid />
           </div>
@@ -79,7 +79,7 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div
               id="telemetry"
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+              className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-6"
             >
               <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                 Telemetry
@@ -103,7 +103,7 @@ export default function SettingsPage() {
           {/* Integrations Section */}
           <div
             id="integrations"
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+            className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-6"
           >
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
               Integrations
@@ -118,7 +118,7 @@ export default function SettingsPage() {
           {/* Experiments Section */}
           <div
             id="experiments"
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+            className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-6"
           >
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
               Experiments
@@ -158,7 +158,7 @@ export default function SettingsPage() {
           {/* Danger Zone */}
           <div
             id="danger-zone"
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-red-200 dark:border-red-800"
+            className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-6 border border-red-200 dark:border-red-800"
           >
             <h2 className="text-lg font-medium text-red-600 dark:text-red-400 mb-4">
               Danger Zone
@@ -178,7 +178,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => setIsResetDialogOpen(true)}
                   disabled={isResetting}
-                  className="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hover:opacity-95 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isResetting ? "Resetting..." : "Reset Everything"}
                 </button>
@@ -207,7 +207,7 @@ export function GeneralSettings({ appVersion }: { appVersion: string | null }) {
   return (
     <div
       id="general-settings"
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+      className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-6"
     >
       <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
         General Settings
@@ -267,7 +267,7 @@ export function WorkflowSettings() {
   return (
     <div
       id="workflow-settings"
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+      className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-6"
     >
       <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
         Workflow Settings
@@ -293,7 +293,7 @@ export function AISettings() {
   return (
     <div
       id="ai-settings"
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+      className="neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset p-6"
     >
       <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
         AI Settings

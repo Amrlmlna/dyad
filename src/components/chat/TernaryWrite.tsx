@@ -38,7 +38,7 @@ export const TernaryWrite: React.FC<TernaryWriteProps> = ({
 
   return (
     <div
-      className={`bg-(--background-lightest) hover:bg-(--background-lighter) rounded-lg px-4 py-2 border my-2 cursor-pointer ${
+      className={`neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset px-4 py-2 border my-4 cursor-pointer ${
         inProgress
           ? "border-amber-500"
           : aborted

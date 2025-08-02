@@ -20,9 +20,9 @@ const ChatMessage = ({ message, isLastMessage }: ChatMessageProps) => {
         message.role === "assistant" ? "justify-start" : "justify-end"
       }`}
     >
-      <div className={`mt-2 w-full max-w-3xl mx-auto`}>
+      <div className={`mt-4 w-full max-w-3xl mx-auto`}>
         <div
-          className={`rounded-lg p-2 ${
+          className={`neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset rounded-lg p-2 ${
             message.role === "assistant" ? "" : "ml-24 bg-(--sidebar-accent)"
           }`}
         >

@@ -199,7 +199,7 @@ function Sidebar({
       <div
         data-slot="sidebar-container"
         className={cn(
-          "fixed inset-y-0 z-10 flex h-svh w-(--sidebar-width) transition-[left,right,width,transform] duration-200 ease-linear",
+          "fixed inset-y-0 z-10 flex h-svh w-(--sidebar-width) transition-[left,right,width,transform] duration-200 ease-linear mt-5",
           side === "left"
             ? "left-0 translate-x-0 group-data-[collapsible=offcanvas]:translate-x-[-100%]"
             : "right-0 translate-x-0 group-data-[collapsible=offcanvas]:translate-x-[100%]",
@@ -237,7 +237,7 @@ function SidebarTrigger({
           data-slot="sidebar-trigger"
           variant="ghost"
           size="sidebar"
-          className="cursor-pointer ml-1 hover:bg-sidebar"
+          className="cursor-pointer ml-1 neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset hover:opacity-95 active:scale-[0.98]"
           // className={cn("hidden", className)}
           onClick={(event) => {
             onClick?.(event);
@@ -450,12 +450,11 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  // (Only the sidebarMenuButtonVariants constant is updated; the rest of the code remains unchanged)
   // Updated base classes:
   // • Changed flex direction to column and centered items.
   // • Enforced a fixed width (w-20) for consistent space.
   // • Removed text-left and gap changes to ensure the text label appears below the icon.
-  "peer/menu-button flex flex-col items-center gap-1 w-16 overflow-hidden p-2 text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>span]:mt-1",
+  "peer/menu-button flex flex-col items-center gap-1 w-16 overflow-hidden p-2 text-sm outline-hidden ring-sidebar-ring neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset hover:opacity-95 active:scale-[0.98] transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>span]:mt-1",
   {
     variants: {
       variant: {
