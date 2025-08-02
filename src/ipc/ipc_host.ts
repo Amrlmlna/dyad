@@ -26,9 +26,11 @@ import { registerCapacitorHandlers } from "./handlers/capacitor_handlers";
 import { registerProblemsHandlers } from "./handlers/problems_handlers";
 import { registerAppEnvVarsHandlers } from "./handlers/app_env_vars_handlers";
 import { registerTemplateHandlers } from "./handlers/template_handlers";
+import { registerWorkflowHandlers } from "./handlers/workflow_handlers";
 
 export function registerIpcHandlers() {
   // Register all IPC handlers by category
+  registerWorkflowHandlers();
   registerAppHandlers();
   registerChatHandlers();
   registerChatStreamHandlers();
