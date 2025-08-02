@@ -196,7 +196,7 @@ case "workflow":
 
 ---
 
-### 3. src/components/workflow_panel/n8nEmbed.tsx
+### 3. src/components/preview_panel/tsx
 
 **Purpose:** Created a new component to embed the n8n workflow editor UI via iframe (or <webview> for Electron).
 **Code Snippet (Full file):**

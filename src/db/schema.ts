@@ -107,6 +107,21 @@ export const language_models = sqliteTable("language_models", {
     .default(sql`(unixepoch())`),
 });
 
+export const workflows = sqliteTable("workflows", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description"),
+  data: text("data", { mode: "json" }), // workflow JSON
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  tags: text("tags", { mode: "json" }),
+  metadata: text("metadata", { mode: "json" }),
+});
+
 // Define relations for new tables
 export const languageModelProvidersRelations = relations(
   language_model_providers,
