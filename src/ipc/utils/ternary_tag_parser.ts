@@ -1,3 +1,25 @@
+// Extracts <ternary-n8n-workflow> tags from LLM response
+export function getTernaryN8nWorkflowTags(fullResponse: string): {
+  name: string;
+  content: string;
+}[] {
+  const workflowRegex =
+    /<ternary-n8n-workflow name="([^"]+)">([\s\S]*?)<\/ternary-n8n-workflow>/gi;
+  let match;
+  const tags: { name: string; content: string }[] = [];
+  while ((match = workflowRegex.exec(fullResponse)) !== null) {
+    const name = match[1];
+    let content = match[2].trim();
+    // Remove markdown code blocks if present
+    const contentLines = content.split("\n");
+    if (contentLines[0]?.startsWith("```")) contentLines.shift();
+    if (contentLines[contentLines.length - 1]?.startsWith("```"))
+      contentLines.pop();
+    content = contentLines.join("\n");
+    tags.push({ name, content });
+  }
+  return tags;
+}
 import { normalizePath } from "../../../shared/normalizePath";
 import log from "electron-log";
 import { SqlQuery } from "../../lib/schemas";

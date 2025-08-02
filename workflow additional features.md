@@ -145,65 +145,14 @@ This document outlines the additional features and integration plan for embeddin
 
 ## Deep Research & Implementation Resources
 
-### 1. Official n8n Documentation
-
-- **Embedding n8n UI**:
-  - [Embed n8n](https://docs.n8n.io/embed/)
-    - Prerequisites, deployment, configuration, workflow management, templates, white-labelling.
-    - Embed editor via iframe or React component.
-- **API Usage**:
-  - [API Reference](https://docs.n8n.io/api/api-reference/)
-    - Endpoints for workflow CRUD, execution, management.
-    - [Authentication](https://docs.n8n.io/api/authentication/) for secure API calls.
-    - [Managing Workflows](https://docs.n8n.io/embed/managing-workflows/) for real-time sync.
-- **Workflow Creation & Execution**:
-  - [Create and Run Workflows](https://docs.n8n.io/workflows/create/)
-  - [Workflow Executions](https://docs.n8n.io/workflows/executions/)
-  - [Export/Import Workflows](https://docs.n8n.io/workflows/export-import/)
-- **Node & Integration Library**:
-  - [Integrations](https://docs.n8n.io/integrations/)
-    - Slack, Notion, Google Sheets, Gmail, Maps, Webhook, etc.
-    - [Node Types](https://docs.n8n.io/integrations/builtin/node-types/)
-    - [Trigger Nodes](https://docs.n8n.io/integrations/builtin/trigger-nodes/)
-- **Custom Node Development**:
-  - [Build Custom Nodes](https://docs.n8n.io/integrations/creating-nodes/overview/)
-  - [Node UI Design](https://docs.n8n.io/integrations/creating-nodes/plan/node-ui-design/)
-- **Best Practices & Optimization**:
-  - [Performance & Benchmarking](https://docs.n8n.io/hosting/scaling/performance-benchmarking/)
-  - [Concurrency Control](https://docs.n8n.io/hosting/scaling/concurrency-control/)
-  - [Error Handling](https://docs.n8n.io/flow-logic/error-handling/)
-  - [Security](https://docs.n8n.io/hosting/securing/security-audit/)
-  - [Source Control & Environments](https://docs.n8n.io/source-control-environments/)
-
-### 2. Community & Tutorials
-
-- **Quickstart & Tutorials**:
-  - [Quickstart](https://docs.n8n.io/try-it-out/)
-  - [Video Courses](https://docs.n8n.io/video-courses/)
-  - [Automating Real-World Use Cases](https://docs.n8n.io/courses/level-one/chapter-3/)
-- **Examples**:
-  - [Workflow Templates](https://docs.n8n.io/embed/workflow-templates/)
-  - [Advanced AI Workflows](https://docs.n8n.io/advanced-ai/intro-tutorial/)
-  - [API Workflow Tool Example](https://docs.n8n.io/advanced-ai/examples/api-workflow-tool/)
-- **Community Nodes**:
-  - [Install Community Nodes](https://docs.n8n.io/integrations/community-nodes/installation/)
-  - [Build Community Nodes](https://docs.n8n.io/integrations/community-nodes/build-community-nodes/)
-
-### 3. Key Implementation Steps
-
-- **Embed n8n Editor**: Use iframe or React component as per [Embed n8n](https://docs.n8n.io/embed/).
-- **API Integration**: Use [API Reference](https://docs.n8n.io/api/api-reference/) for workflow CRUD and execution.
-- **Real-Time Sync**: Use [Managing Workflows](https://docs.n8n.io/embed/managing-workflows/) and [Webhooks](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/) for event-driven updates.
-- **Custom Nodes**: Follow [Build Custom Nodes](https://docs.n8n.io/integrations/creating-nodes/overview/) for app-specific logic.
-- **Optimization**: Apply [Performance & Benchmarking](https://docs.n8n.io/hosting/scaling/performance-benchmarking/) and [Concurrency Control](https://docs.n8n.io/hosting/scaling/concurrency-control/).
-- **Security**: Review [Security Audit](https://docs.n8n.io/hosting/securing/security-audit/) and [Authentication](https://docs.n8n.io/api/authentication/).
-
-### 4. Additional Resources
-
-- [n8n GitHub](https://github.com/n8n-io/n8n) for source code and issues.
-- [n8n Community Forum](https://community.n8n.io/) for real-world patterns and troubleshooting.
+- **Embed n8n Editor**: Gunakan Electron `<webview>` seperti pada ClaraVerse untuk integrasi UI n8n yang robust. Implementasi deteksi URL/mode n8n secara dinamis via Electron IPC. Inject font dan CSS custom agar UI n8n menyatu dengan aplikasi. Tambahkan error handling dan auto-retry pada webview. Integrasi toggle untuk workflow store, quick workflows, webhook tester, dan tool creation.
+- **Service Configuration**: Buat hook untuk mengambil konfigurasi/status n8n via Electron IPC, mendukung mode Docker/local/cloud.
+- **Real-Time Sync & Logs**: Prefetch workflow dan tampilkan log setup secara real-time via Electron IPC.
+- **Custom Nodes & Tools**: Integrasi workflow store, quick workflows, webhook tester, dan UI pembuatan tool untuk otomasi berbasis user.
+- **Error Handling**: Implementasi error handling yang robust untuk webview, dengan auto-retry dan feedback ke user.
+- **Security & Optimization**: Terapkan best practice security dan optimisasi sesuai pola ClaraVerse.
 
 ---
 
-**Summary:**  
-All official and community resources above provide step-by-step guides, API docs, UI embedding strategies, workflow management, custom node development, and best practices for performance, security, and real-time sync. Use these links for deep implementation research and reference.
+**Summary:**
+Dokumentasi ini sepenuhnya mengadopsi pola implementasi ClaraVerse untuk integrasi n8n di Electron, tanpa tambahan tutorial atau dokumentasi umum yang tidak relevan. Semua langkah dan fitur mengikuti arsitektur modular, real-time, dan optimal seperti yang sudah terbukti di ClaraVerse.
