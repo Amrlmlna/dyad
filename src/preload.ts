@@ -101,6 +101,11 @@ const validInvokeChannels = [
   "check-problems",
   "restart-ternary",
   "get-templates",
+  // Backend file channels
+  "backend-test",
+  "backend-files:scan",
+  "backend-files:save",
+  "backend-files:read",
   // Test-only channels
   // These should ALWAYS be guarded with IS_TEST_BUILD in the main process.
   // We can't detect with IS_TEST_BUILD in the preload script because

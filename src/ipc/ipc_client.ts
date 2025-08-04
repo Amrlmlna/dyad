@@ -1032,6 +1032,10 @@ export class IpcClient {
   }
 
   // Backend file methods
+  public async testBackendHandlers(): Promise<any> {
+    return this.ipcRenderer.invoke("backend-test");
+  }
+
   public async scanBackendFiles(appPath: string): Promise<any> {
     return this.ipcRenderer.invoke("backend-files:scan", appPath);
   }

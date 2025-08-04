@@ -87,9 +87,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {content.title}
       </h3>
       
-      <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
+      <div className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
         {content.description}
-      </p>
+      </div>
 
       {content.showRefresh && onRefresh && (
         <Button 
