@@ -33,7 +33,19 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         return {
           icon: <FileSearch size={48} className="text-muted-foreground" />,
           title: 'No Backend Files Found',
-          description: 'No backend files were found in this project. Make sure your project contains backend code files (.js, .ts, .py, etc.) in common directories like api/, routes/, controllers/, or models/.',
+          description: (
+            <div>
+              <p className="text-muted-foreground mb-4">
+                No backend files were found in this project. The scanner looks for backend code in:
+              </p>
+              <ul className="text-sm text-muted-foreground mb-6 space-y-1">
+                <li>• <strong>Traditional backend files:</strong> .js, .ts, .py, .php, .go</li>
+                <li>• <strong>Component files with backend logic:</strong> .tsx, .jsx</li>
+                <li>• <strong>Directories scanned:</strong> src/, components/, pages/, api/, routes/</li>
+                <li>• <strong>Patterns detected:</strong> Supabase, authentication, database calls</li>
+              </ul>
+            </div>
+          ),
           showRefresh: true,
         };
 

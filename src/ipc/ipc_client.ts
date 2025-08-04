@@ -1030,4 +1030,17 @@ export class IpcClient {
   public async getTemplates(): Promise<Template[]> {
     return this.ipcRenderer.invoke("get-templates");
   }
+
+  // Backend file methods
+  public async scanBackendFiles(appPath: string): Promise<any> {
+    return this.ipcRenderer.invoke("backend-files:scan", appPath);
+  }
+
+  public async saveBackendFile(filePath: string, content: string): Promise<void> {
+    return this.ipcRenderer.invoke("backend-files:save", filePath, content);
+  }
+
+  public async readBackendFile(filePath: string): Promise<string> {
+    return this.ipcRenderer.invoke("backend-files:read", filePath);
+  }
 }

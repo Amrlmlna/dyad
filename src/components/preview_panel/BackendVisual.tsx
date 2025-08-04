@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import ReactFlow, {
   Node,
@@ -16,33 +16,60 @@ import { useBackendFiles } from '../../hooks/useBackendFiles';
 import { BackendToolbar } from '../backend_visualizer/BackendToolbar';
 import { FileEditor } from '../backend_visualizer/FileEditor';
 import { EmptyState } from '../backend_visualizer/EmptyState';
+import { VisualizationSettings } from '../backend_visualizer/VisualizationSettings';
 import { nodeTypes } from '../backend_visualizer/nodes/FileNode';
+import { hierarchicalNodeTypes } from '../backend_visualizer/nodes/HierarchicalFileNode';
 import { BackendFile, FileRelationship } from '../../types/backendFile';
+import { visualizationSettingsAtom } from '../../atoms/backendFileAtoms';
 
-// Convert backend files to ReactFlow nodes
-const useFlowNodes = (files: BackendFile[]): Node[] => {
-  return useMemo(() => 
-    files.map(file => ({
+// Convert backend files to ReactFlow nodes with settings support
+const useFlowNodes = (files: BackendFile[], settings: any): Node[] => {
+  return useMemo(() => {
+    let filteredFiles = files;
+    
+    // Apply filters based on settings
+    if (settings.showThirdPartyOnly) {
+      filteredFiles = files.filter(file => 
+        file.codeBlocks?.some(block => block.type === 'third_party') ||
+        file.functions?.some(func => 
+          func.codeBlocks?.some(block => block.type === 'third_party')
+        )
+      );
+    }
+    
+    if (settings.showCriticalOnly) {
+      filteredFiles = filteredFiles.filter(file => 
+        file.codeBlocks?.some(block => block.importance === 'critical') ||
+        file.functions?.some(func => 
+          func.codeBlocks?.some(block => block.importance === 'critical')
+        )
+      );
+    }
+    
+    // Choose node type based on display level
+    const nodeType = settings.displayLevel === 'file' ? 'fileNode' : 'hierarchicalFileNode';
+    
+    return filteredFiles.map((file) => ({
       id: file.id,
-      type: 'fileNode',
-      position: file.position,
+      type: nodeType,
+      position: file.position || { x: 0, y: 0 },
       data: file,
       draggable: true,
-    }))
-  , [files]);
+    }));
+  }, [files, settings]);
 };
 
 // Convert relationships to ReactFlow edges
 const useFlowEdges = (relationships: FileRelationship[]): Edge[] => {
   return useMemo(() =>
-    relationships.map(rel => ({
+    relationships.map((rel) => ({
       id: rel.id,
-      source: rel.source,
-      target: rel.target,
+      source: rel.sourceId,
+      target: rel.targetId,
       label: rel.label,
       type: 'smoothstep',
-      animated: false,
-      style: { stroke: '#94a3b8', strokeWidth: 2 },
+      animated: true,
+      style: { stroke: '#8b5cf6' },
       labelStyle: { fill: '#64748b', fontSize: 10 },
       labelBgStyle: { fill: 'white', fillOpacity: 0.8 },
     }))
@@ -53,9 +80,11 @@ const useFlowEdges = (relationships: FileRelationship[]): Edge[] => {
 const BackendVisualizerContent: React.FC = () => {
   const selectedAppId = useAtomValue(selectedAppIdAtom);
   const currentApp = useAtomValue(currentAppAtom);
+  const settings = useAtomValue(visualizationSettingsAtom);
+  const [showSettings, setShowSettings] = useState(false);
   const { fitView } = useReactFlow();
   
-  // Get project path from current app
+  // Get relative project path from current app
   const projectPath = currentApp?.path || null;
   
   // Use backend files hook
@@ -73,8 +102,8 @@ const BackendVisualizerContent: React.FC = () => {
     watchFiles: false, // Disable for now to avoid performance issues
   });
 
-  // Convert to ReactFlow format
-  const nodes = useFlowNodes(files);
+  // Convert to ReactFlow format with settings
+  const nodes = useFlowNodes(files, settings);
   const edges = useFlowEdges(relationships);
 
   // Handle fit view
@@ -125,7 +154,7 @@ const BackendVisualizerContent: React.FC = () => {
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        nodeTypes={nodeTypes}
+        nodeTypes={{ ...nodeTypes, ...hierarchicalNodeTypes }}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
@@ -169,6 +198,12 @@ const BackendVisualizerContent: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 relative">
         {renderContent()}
+        
+        {/* Visualization Settings */}
+        <VisualizationSettings 
+          isOpen={showSettings}
+          onToggle={() => setShowSettings(!showSettings)}
+        />
       </div>
       
       {/* File Editor Modal */}

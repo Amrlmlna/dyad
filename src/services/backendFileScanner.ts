@@ -1,55 +1,5 @@
 import * as fs from 'fs';
-
-// Browser-compatible path utilities
-const path = {
-  join: (...segments: string[]) => {
-    return segments
-      .filter(segment => segment && segment !== '.')
-      .join('/')
-      .replace(/\/+/g, '/'); // Remove duplicate slashes
-  },
-  relative: (from: string, to: string) => {
-    // Simple relative path calculation
-    const fromParts = from.split('/').filter(Boolean);
-    const toParts = to.split('/').filter(Boolean);
-    
-    // Find common base
-    let commonLength = 0;
-    for (let i = 0; i < Math.min(fromParts.length, toParts.length); i++) {
-      if (fromParts[i] === toParts[i]) {
-        commonLength++;
-      } else {
-        break;
-      }
-    }
-    
-    // Build relative path
-    const upLevels = fromParts.length - commonLength;
-    const downPath = toParts.slice(commonLength);
-    
-    const result = '../'.repeat(upLevels) + downPath.join('/');
-    return result || '.';
-  },
-  basename: (filePath: string, ext?: string) => {
-    const name = filePath.split('/').pop() || filePath;
-    if (ext && name.endsWith(ext)) {
-      return name.slice(0, -ext.length);
-    }
-    return name;
-  },
-  extname: (filePath: string) => {
-    const name = filePath.split('/').pop() || filePath;
-    const lastDot = name.lastIndexOf('.');
-    return lastDot > 0 ? name.slice(lastDot) : '';
-  },
-  dirname: (filePath: string) => {
-    const parts = filePath.split('/');
-    return parts.slice(0, -1).join('/') || '.';
-  },
-  resolve: (...segments: string[]) => {
-    return path.join(...segments);
-  }
-};
+import * as path from 'path';
 import { 
   BackendFile, 
   FileRelationship, 
@@ -59,6 +9,7 @@ import {
   BACKEND_FILE_EXTENSIONS,
   BackendFileType
 } from '../types/backendFile';
+import { AdvancedCodeAnalyzer } from './advancedCodeAnalyzer';
 
 export class BackendFileScanner {
   private projectPath: string;
@@ -78,7 +29,8 @@ export class BackendFileScanner {
       );
       
       const validFiles = analyzedFiles.filter(Boolean) as BackendFile[];
-      const relationships = this.buildRelationships(validFiles);
+      // Build relationships (including enhanced ones)
+      const relationships = AdvancedCodeAnalyzer.generateEnhancedRelationships(validFiles);
       
       // Auto-layout files
       this.applyAutoLayout(validFiles);
@@ -100,9 +52,11 @@ export class BackendFileScanner {
    */
   private async findBackendFiles(): Promise<string[]> {
     const backendFiles: string[] = [];
+    console.log('🔍 Starting backend file scan in:', this.projectPath);
     
-    // Common backend directories to scan
-    const backendDirs = [
+    // Expanded directories to scan (including component directories)
+    const scanDirs = [
+      // Traditional backend directories
       'api', 'src/api', 'app/api',
       'routes', 'src/routes', 'app/routes',
       'controllers', 'src/controllers', 'app/controllers',
@@ -112,17 +66,28 @@ export class BackendFileScanner {
       'config', 'src/config', 'app/config',
       'server', 'src/server',
       'backend', 'src/backend',
+      // Frontend directories that might contain backend logic
+      'src', 'app', 'pages', 'components',
+      'src/components', 'app/components',
+      'src/pages', 'app/pages',
+      'src/lib', 'lib', 'utils', 'src/utils',
+      // Root directory
+      '.',
     ];
 
     // Also scan root directory for common files
     const rootFiles = ['server.js', 'server.ts', 'app.js', 'app.ts', 'index.js', 'index.ts'];
 
-    // Scan backend directories
-    for (const dir of backendDirs) {
+    // Scan directories for backend files
+    for (const dir of scanDirs) {
       const fullPath = path.join(this.projectPath, dir);
       if (await this.pathExists(fullPath)) {
+        console.log(`📁 Scanning directory: ${dir} (${fullPath})`);
         const files = await this.scanDirectory(fullPath);
+        console.log(`  Found ${files.length} files in ${dir}`);
         backendFiles.push(...files);
+      } else {
+        console.log(`❌ Directory not found: ${dir} (${fullPath})`);
       }
     }
 
@@ -134,6 +99,10 @@ export class BackendFileScanner {
       }
     }
 
+    console.log(`✅ Total backend files found: ${backendFiles.length}`);
+    if (backendFiles.length > 0) {
+      console.log('📋 Found files:', backendFiles.map(f => path.relative(this.projectPath, f)));
+    }
     return backendFiles;
   }
 
@@ -184,20 +153,44 @@ export class BackendFileScanner {
       const exports = this.extractExports(content);
       const endpoints = this.extractEndpoints(content, fileType);
 
-      return {
+      const backendFile: BackendFile = {
         id: this.generateFileId(relativePath),
-        path: relativePath,
-        absolutePath: filePath,
         name: fileName,
-        extension,
+        path: relativePath,
+        relativePath,
         type: fileType,
+        size: content.length,
+        lastModified: new Date(), // In real implementation, get from fs.stat
         content,
         imports,
         exports,
-        endpoints,
-        position: { x: 0, y: 0 }, // Will be set by auto-layout
-        size: { width: 200, height: 100 },
+        endpoints: (endpoints || []).map((endpoint, index) => ({
+          id: `${relativePath}-endpoint-${index}`,
+          method: 'GET' as const, // Default, will be enhanced by AdvancedCodeAnalyzer
+          path: endpoint,
+          functionName: 'unknown',
+          line: 0,
+        })),
+        dependencies: imports, // Use imports as dependencies for now
+        position: undefined, // Will be set during layout
       };
+
+      // Apply advanced code analysis
+      console.log(`🔍 Analyzing file: ${fileName}`);
+      const enhancedFile = AdvancedCodeAnalyzer.analyzeFile(backendFile);
+      
+      // Log analysis results
+      const functionCount = enhancedFile.functions?.length || 0;
+      const codeBlockCount = enhancedFile.codeBlocks?.length || 0;
+      console.log(`  → Functions: ${functionCount}, Code blocks: ${codeBlockCount}`);
+      
+      if (codeBlockCount > 0) {
+        const criticalBlocks = enhancedFile.codeBlocks?.filter(b => b.importance === 'critical').length || 0;
+        const thirdPartyBlocks = enhancedFile.codeBlocks?.filter(b => b.type === 'third_party').length || 0;
+        console.log(`  → Critical: ${criticalBlocks}, Third-party: ${thirdPartyBlocks}`);
+      }
+
+      return enhancedFile;
     } catch (error) {
       console.warn(`Error analyzing file ${filePath}:`, error);
       return null;
@@ -326,11 +319,10 @@ export class BackendFileScanner {
         if (targetFile) {
           relationships.push({
             id: `${file.id}->${targetFile.id}`,
-            source: file.id,
-            target: targetFile.id,
+            sourceId: file.id,
+            targetId: targetFile.id,
             type: 'import',
             label: path.basename(importPath),
-            importName: importPath,
           });
         }
       }

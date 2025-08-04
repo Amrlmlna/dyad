@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { BackendFile, FileRelationship, BackendFileAnalysis } from "../types/backendFile";
+import { BackendFile, FileRelationship, BackendFileAnalysis, VisualizationSettings } from "../types/backendFile";
 
 // Core backend file data
 export const backendFilesAtom = atom<BackendFile[]>([]);
@@ -15,6 +15,15 @@ export const backendScanErrorAtom = atom<string | null>(null);
 // File editor state
 export const fileEditorContentAtom = atom<string>("");
 export const fileEditorHasChangesAtom = atom<boolean>(false);
+
+// Visualization settings
+export const visualizationSettingsAtom = atom<VisualizationSettings>({
+  displayLevel: 'function',
+  showThirdPartyOnly: false,
+  showCriticalOnly: false,
+  groupByType: true,
+  autoLayout: true,
+});
 
 // Derived atoms
 export const backendFileCountAtom = atom((get) => get(backendFilesAtom).length);
@@ -51,7 +60,7 @@ export const openFileEditorAtom = atom(
   null,
   (get, set, file: BackendFile) => {
     set(selectedBackendFileAtom, file);
-    set(fileEditorContentAtom, file.content);
+    set(fileEditorContentAtom, file.content || '');
     set(fileEditorHasChangesAtom, false);
     set(isFileEditorOpenAtom, true);
   }

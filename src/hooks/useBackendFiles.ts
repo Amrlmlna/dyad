@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { currentAppAtom } from "../atoms/appAtoms";
-import * as fs from 'fs';
+import { IpcClient } from "../ipc/ipc_client";
 import {
   backendFilesAtom,
   backendRelationshipsAtom,
@@ -14,7 +14,6 @@ import {
   fileEditorContentAtom,
   fileEditorHasChangesAtom,
 } from "../atoms/backendFileAtoms";
-import { BackendFileScanner } from "../services/backendFileScanner";
 import { BackendFile, BackendFileAnalysis } from "../types/backendFile";
 
 export interface UseBackendFilesOptions {
@@ -48,18 +47,18 @@ export function useBackendFiles(projectPath: string | null, options: UseBackendF
     setScanningState({ isScanning: true, error: null });
 
     try {
-      const scanner = new BackendFileScanner(projectPath);
-      const result = await scanner.scanProject();
-      setAnalysis(result);
+      const ipcClient = IpcClient.getInstance();
+      const analysis = await ipcClient.scanBackendFiles(projectPath);
       
-      console.log(`Backend scan completed: ${result.files.length} files, ${result.relationships.length} relationships`);
+      console.log('Backend scan completed:', analysis.files.length, 'files,', analysis.relationships.length, 'relationships');
+      
+      setAnalysis(analysis);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error('Backend file scanning failed:', error);
-      setScanningState({ isScanning: false, error: errorMessage });
-      setAnalysis(null);
-    } finally {
-      setScanningState({ isScanning: false });
+      console.error('Error scanning backend files:', error);
+      setScanningState({ 
+        isScanning: false, 
+        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+      });
     }
   }, [projectPath, setAnalysis, setScanningState]);
 
@@ -87,37 +86,8 @@ export function useBackendFiles(projectPath: string | null, options: UseBackendF
     }
   }, [projectPath, autoScan, scanFiles, clearFiles]);
 
-  // File watching (if enabled)
-  useEffect(() => {
-    if (!watchFiles || !projectPath || !analysis) {
-      return;
-    }
-
-    // Simple debounced file watcher
-    let timeoutId: NodeJS.Timeout;
-    
-    const handleFileChange = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        console.log('File change detected, refreshing backend files...');
-        refreshFiles();
-      }, 1000); // Debounce for 1 second
-    };
-
-    // Watch for file changes in the project directory
-    // Note: This is a simplified implementation
-    // In a real app, you might want to use a more sophisticated file watcher
-    const watcher = fs.watch(projectPath, { recursive: true }, (eventType, filename) => {
-      if (filename && /\.(js|ts|jsx|tsx|py|php|go|rb)$/.test(filename)) {
-        handleFileChange();
-      }
-    });
-
-    return () => {
-      clearTimeout(timeoutId);
-      watcher.close();
-    };
-  }, [watchFiles, projectPath, analysis, refreshFiles]);
+  // Note: File watching is not implemented in renderer process
+  // File changes will be detected when user manually refreshes
 
   return {
     // Data
@@ -159,7 +129,8 @@ export function useFileEditor() {
     }
 
     try {
-      await fs.promises.writeFile(selectedFile.absolutePath, content, 'utf-8');
+      const ipcClient = IpcClient.getInstance();
+      await ipcClient.saveBackendFile(selectedFile.path, content);
       
       // Update the file content in the atom
       const updatedFile = { ...selectedFile, content };
@@ -179,7 +150,7 @@ export function useFileEditor() {
    */
   const revertChanges = useCallback(() => {
     if (selectedFile) {
-      setContent(selectedFile.content);
+      setContent(selectedFile.content || '');
       setHasChanges(false);
     }
   }, [selectedFile, setContent, setHasChanges]);

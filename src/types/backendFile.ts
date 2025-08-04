@@ -1,26 +1,116 @@
 // Types for backend file visualization
+export type BackendFileType = 'controller' | 'model' | 'route' | 'service' | 'middleware' | 'config' | 'unknown';
+
+export interface ApiEndpoint {
+  id: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  path: string;
+  functionName: string;
+  line: number;
+  parameters?: string[];
+  description?: string;
+}
+
 export interface BackendFile {
   id: string;
-  path: string;           // Relative path from project root
-  absolutePath: string;   // Absolute path to file
-  name: string;           // File name without extension
-  extension: string;      // File extension (.js, .ts, etc.)
-  type: 'controller' | 'model' | 'route' | 'service' | 'middleware' | 'config' | 'unknown';
-  content: string;        // Actual file content
-  imports: string[];      // List of imported file paths
-  exports: string[];      // List of exported items
-  endpoints?: string[];   // API endpoints (for routes/controllers)
-  position: { x: number; y: number }; // Visual position
-  size?: { width: number; height: number }; // Node size
+  name: string;
+  path: string;
+  relativePath: string;
+  type: BackendFileType;
+  size: number;
+  lastModified: Date;
+  content?: string;
+  imports: string[];
+  exports: string[];
+  endpoints?: ApiEndpoint[];
+  dependencies: string[];
+  // Hierarchical structure
+  functions?: BackendFunction[];
+  classes?: BackendClass[];
+  codeBlocks?: CodeBlock[];
+  isExpanded?: boolean;
+  // ReactFlow node properties
+  position?: { x: number; y: number };
 }
 
 export interface FileRelationship {
   id: string;
-  source: string;         // Source file ID
-  target: string;         // Target file ID
-  type: 'import' | 'require';
-  label: string;          // Display label
-  importName?: string;    // Specific import name
+  sourceId: string;
+  targetId: string;
+  type: 'import' | 'export' | 'dependency' | 'function_call' | 'api_call';
+  label?: string;
+  // For hierarchical relationships
+  sourceFunction?: string;
+  targetFunction?: string;
+}
+
+// New hierarchical types
+export interface BackendFunction {
+  id: string;
+  name: string;
+  type: 'function' | 'method' | 'endpoint' | 'middleware';
+  startLine: number;
+  endLine: number;
+  parameters: string[];
+  returnType?: string;
+  isAsync: boolean;
+  isExported: boolean;
+  httpMethod?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  route?: string;
+  codeBlocks?: CodeBlock[];
+  calls?: FunctionCall[];
+}
+
+export interface BackendClass {
+  id: string;
+  name: string;
+  type: 'class' | 'interface' | 'type';
+  startLine: number;
+  endLine: number;
+  methods: BackendFunction[];
+  properties: string[];
+  extends?: string;
+  implements?: string[];
+  isExported: boolean;
+}
+
+export interface CodeBlock {
+  id: string;
+  type: 'api_call' | 'db_query' | 'auth_check' | 'file_operation' | 'third_party';
+  provider?: ThirdPartyProvider;
+  startLine: number;
+  endLine: number;
+  code: string;
+  description: string;
+  importance: 'low' | 'medium' | 'high' | 'critical';
+}
+
+export interface FunctionCall {
+  id: string;
+  functionName: string;
+  filePath?: string;
+  line: number;
+  isExternal: boolean;
+  isThirdParty: boolean;
+  provider?: ThirdPartyProvider;
+}
+
+export type ThirdPartyProvider = 
+  | 'supabase' | 'openai' | 'anthropic' | 'slack' | 'discord'
+  | 'google' | 'github' | 'stripe' | 'twilio' | 'sendgrid'
+  | 'aws' | 'azure' | 'gcp' | 'firebase' | 'mongodb'
+  | 'postgresql' | 'mysql' | 'redis' | 'prisma' | 'drizzle'
+  | 'express' | 'fastify' | 'koa' | 'nestjs' | 'unknown';
+
+// Node display types
+export type NodeDisplayLevel = 'file' | 'function' | 'code_block';
+
+export interface VisualizationSettings {
+  displayLevel: NodeDisplayLevel;
+  showThirdPartyOnly: boolean;
+  showCriticalOnly: boolean;
+  groupByType: boolean;
+  autoLayout: boolean;
 }
 
 export interface BackendFileAnalysis {
@@ -114,4 +204,3 @@ export const BACKEND_FILE_EXTENSIONS = [
 ] as const;
 
 export type BackendFileExtension = typeof BACKEND_FILE_EXTENSIONS[number];
-export type BackendFileType = keyof typeof FILE_TYPE_PATTERNS | 'unknown';
