@@ -39,7 +39,7 @@ export type PreviewMode =
   | "problems"
   | "configure"
   | "publish"
-  | "workflow";
+  | "backend";
 
 const BUTTON_CLASS_NAME =
   "no-app-region-drag cursor-pointer relative flex items-center gap-1 px-2 py-1 rounded-md text-[13px] font-medium z-10 hover:bg-[var(--background)]";
@@ -54,7 +54,7 @@ export const PreviewHeader = () => {
   const problemsRef = useRef<HTMLButtonElement>(null);
   const configureRef = useRef<HTMLButtonElement>(null);
   const publishRef = useRef<HTMLButtonElement>(null);
-  const workflowRef = useRef<HTMLButtonElement>(null);
+  const backendRef = useRef<HTMLButtonElement>(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const { problemReport } = useCheckProblems(selectedAppId);
@@ -140,8 +140,8 @@ export const PreviewHeader = () => {
         case "publish":
           targetRef = publishRef;
           break;
-        case "workflow":
-          targetRef = workflowRef;
+        case "backend":
+          targetRef = backendRef;
           break;
         default:
           return;
@@ -262,11 +262,11 @@ export const PreviewHeader = () => {
             "publish-mode-button",
           )}
           {renderButton(
-            "workflow",
-            workflowRef,
+            "backend",
+            backendRef,
             <Cog size={14} />,
-            "Workflow",
-            "workflow-mode-button",
+            "Backend",
+            "backend-mode-button",
           )}
         </div>
         <div className="flex items-center">

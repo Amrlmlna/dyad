@@ -7,7 +7,7 @@ import {
 } from "../../atoms/appAtoms";
 
 import { CodeView } from "./CodeView";
-import WorkflowPanel from "./WorkflowPanel";
+import BackendPanel from "./BackendVisual";
 import { PreviewIframe } from "./PreviewIframe";
 import { Problems } from "./Problems";
 import { ConfigurePanel } from "./ConfigurePanel";
@@ -120,8 +120,8 @@ export function PreviewPanel() {
                 <ConfigurePanel />
               ) : previewMode === "publish" ? (
                 <PublishPanel />
-              ) : previewMode === "workflow" ? (
-                <WorkflowPanel />
+              ) : previewMode === "backend" ? (
+                <BackendPanel />
               ) : (
                 <Problems />
               )}
