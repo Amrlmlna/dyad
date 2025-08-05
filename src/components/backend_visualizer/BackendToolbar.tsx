@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAtomValue } from 'jotai';
 import { 
   RefreshCw, 
@@ -6,7 +6,14 @@ import {
   Filter,
   BarChart3,
   Info,
-  Loader2
+  Loader2,
+  Layout,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  Settings,
+  Download,
+  Eye
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';

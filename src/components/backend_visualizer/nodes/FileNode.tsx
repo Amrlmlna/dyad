@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { 
   FileText, 
@@ -8,7 +8,11 @@ import {
   Shield, 
   Server,
   Code,
-  FileCode
+  FileCode,
+  ExternalLink,
+  AlertTriangle,
+  Clock,
+  GitBranch
 } from 'lucide-react';
 import { BackendFile } from '../../../types/backendFile';
 import { useSetAtom } from 'jotai';
@@ -58,29 +62,31 @@ const getFileTypeAccent = (type: BackendFile['type']) => {
   }
 };
 
-export const FileNode: React.FC<FileNodeProps> = ({ data, selected }) => {
+export const FileNode: React.FC<FileNodeProps> = memo(({ data, selected }) => {
   const openFileEditor = useSetAtom(openFileEditorAtom);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('🎯 FileNode clicked:', data.name);
     openFileEditor(data);
-  };
+  }, [data, openFileEditor]);
 
-  const accentClasses = getFileTypeAccent(data.type);
-  const selectedClasses = selected ? 'ring-2 ring-primary ring-opacity-50' : '';
+  const nodeStyles = useMemo(() => {
+    const accentClasses = getFileTypeAccent(data.type);
+    const selectedClasses = selected ? 'ring-2 ring-primary ring-opacity-50' : '';
+    return `${accentClasses} ${selectedClasses}`;
+  }, [data.type, selected]);
 
   return (
-    <div 
-      className={`
-        relative min-w-[180px] max-w-[220px] p-3 cursor-pointer
-        neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset
-        hover:neu-shadow-hover active:neu-shadow-pressed
-        ${accentClasses} ${selectedClasses}
-      `}
-      onClick={handleClick}
-      style={{ zIndex: 10 }}
-    >
+    <>
+      <div 
+        className={`
+          relative min-w-[180px] max-w-[220px] p-3
+          neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset
+          hover:neu-shadow-hover active:neu-shadow-pressed
+          ${nodeStyles}
+        `}
+        onDoubleClick={handleClick}
+      >
       {/* Input Handle */}
       <Handle
         type="target"
@@ -119,7 +125,8 @@ export const FileNode: React.FC<FileNodeProps> = ({ data, selected }) => {
                 key={index}
                 className="text-xs neu-bg neu-shadow-inset px-2 py-1 neu-radius text-foreground font-mono"
               >
-                {endpoint}
+                <span className="text-blue-400 font-semibold">{endpoint.method}</span>
+                <span className="ml-1">{endpoint.path}</span>
               </div>
             ))}
             {data.endpoints.length > 3 && (
@@ -167,9 +174,10 @@ export const FileNode: React.FC<FileNodeProps> = ({ data, selected }) => {
         className="w-2 h-2 neu-bg neu-shadow-inset"
         style={{ background: 'var(--neu-bg)', border: '1px solid var(--neu-border)' }}
       />
-    </div>
+      </div>
+    </>
   );
-};
+});
 
 // Node type registration for ReactFlow
 export const nodeTypes = {
