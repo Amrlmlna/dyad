@@ -18,7 +18,7 @@ export const fileEditorHasChangesAtom = atom<boolean>(false);
 
 // Visualization settings
 export const visualizationSettingsAtom = atom<VisualizationSettings>({
-  displayLevel: 'function',
+  displayLevel: 'file',
   showThirdPartyOnly: false,
   showCriticalOnly: false,
   groupByType: true,

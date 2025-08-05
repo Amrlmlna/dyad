@@ -53,6 +53,7 @@ export function useBackendFiles(projectPath: string | null, options: UseBackendF
       console.log('Backend scan completed:', analysis.files.length, 'files,', analysis.relationships.length, 'relationships');
       
       setAnalysis(analysis);
+      setScanningState({ isScanning: false, error: null });
     } catch (error) {
       console.error('Error scanning backend files:', error);
       setScanningState({ 

@@ -61,7 +61,9 @@ const getFileTypeAccent = (type: BackendFile['type']) => {
 export const FileNode: React.FC<FileNodeProps> = ({ data, selected }) => {
   const openFileEditor = useSetAtom(openFileEditorAtom);
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('🎯 FileNode clicked:', data.name);
     openFileEditor(data);
   };
 
@@ -73,9 +75,11 @@ export const FileNode: React.FC<FileNodeProps> = ({ data, selected }) => {
       className={`
         relative min-w-[180px] max-w-[220px] p-3 cursor-pointer
         neu-bg neu-shadow neu-radius neu-transition neu-shadow-inset
+        hover:neu-shadow-hover active:neu-shadow-pressed
         ${accentClasses} ${selectedClasses}
       `}
       onClick={handleClick}
+      style={{ zIndex: 10 }}
     >
       {/* Input Handle */}
       <Handle
@@ -99,9 +103,11 @@ export const FileNode: React.FC<FileNodeProps> = ({ data, selected }) => {
       </div>
 
       {/* File Extension */}
-      <div className="text-xs text-muted-foreground mb-2">
-        {data.extension}
-      </div>
+      {data.path && (
+        <div className="text-xs text-muted-foreground mb-2">
+          {data.path.split('.').pop() || 'unknown'}
+        </div>
+      )}
 
       {/* Endpoints (for routes/controllers) */}
       {data.endpoints && data.endpoints.length > 0 && (

@@ -54,7 +54,7 @@ export class BackendFileScanner {
     const backendFiles: string[] = [];
     console.log('🔍 Starting backend file scan in:', this.projectPath);
     
-    // Expanded directories to scan (including component directories)
+    // Focus on backend-specific directories only
     const scanDirs = [
       // Traditional backend directories
       'api', 'src/api', 'app/api',
@@ -66,13 +66,10 @@ export class BackendFileScanner {
       'config', 'src/config', 'app/config',
       'server', 'src/server',
       'backend', 'src/backend',
-      // Frontend directories that might contain backend logic
-      'src', 'app', 'pages', 'components',
-      'src/components', 'app/components',
-      'src/pages', 'app/pages',
-      'src/lib', 'lib', 'utils', 'src/utils',
-      // Root directory
-      '.',
+      // Only scan lib/utils for backend utilities (not all components)
+      'src/lib', 'lib', 'src/utils',
+      // Pages only if they contain API routes
+      'pages/api', 'src/pages/api', 'app/pages/api',
     ];
 
     // Also scan root directory for common files
@@ -127,7 +124,10 @@ export class BackendFileScanner {
         } else if (entry.isFile()) {
           const ext = path.extname(entry.name);
           if (BACKEND_FILE_EXTENSIONS.includes(ext as any)) {
-            files.push(fullPath);
+            // Skip UI component files
+            if (this.isBackendFile(fullPath, entry.name)) {
+              files.push(fullPath);
+            }
           }
         }
       }
@@ -399,5 +399,71 @@ export class BackendFileScanner {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Check if a file is likely a backend file (not a UI component)
+   */
+  private isBackendFile(filePath: string, fileName: string): boolean {
+    const relativePath = path.relative(this.projectPath, filePath);
+    
+    // Skip UI component directories
+    const uiDirectories = ['components', 'ui', 'pages', 'app/page', 'app/layout'];
+    if (uiDirectories.some(dir => relativePath.includes(dir))) {
+      // Only include if it's in an API directory or has backend patterns
+      if (!relativePath.includes('/api/') && !relativePath.includes('\\api\\')) {
+        return false;
+      }
+    }
+    
+    // Skip common UI component file patterns
+    const uiPatterns = [
+      /Component\.tsx?$/,
+      /\.component\./,
+      /Page\.tsx?$/,
+      /Layout\.tsx?$/,
+      /Modal\.tsx?$/,
+      /Dialog\.tsx?$/,
+      /Button\.tsx?$/,
+      /Input\.tsx?$/,
+      /Form\.tsx?$/,
+      /toast\.tsx?$/i,
+      /toaster\.tsx?$/i,
+      /notification\.tsx?$/i,
+      /alert\.tsx?$/i,
+      /badge\.tsx?$/i,
+      /card\.tsx?$/i,
+      /avatar\.tsx?$/i,
+      /skeleton\.tsx?$/i,
+      /progress\.tsx?$/i,
+      /slider\.tsx?$/i,
+      /switch\.tsx?$/i,
+      /tabs\.tsx?$/i,
+      /accordion\.tsx?$/i,
+      /dropdown\.tsx?$/i,
+      /popover\.tsx?$/i,
+      /tooltip\.tsx?$/i,
+    ];
+    
+    if (uiPatterns.some(pattern => pattern.test(fileName))) {
+      return false;
+    }
+    
+    // Include backend patterns
+    const backendPatterns = [
+      /api/,
+      /route/,
+      /controller/,
+      /service/,
+      /model/,
+      /middleware/,
+      /config/,
+      /server/,
+      /backend/,
+      /utils/,
+      /lib/,
+    ];
+    
+    return backendPatterns.some(pattern => pattern.test(relativePath.toLowerCase()));
   }
 }

@@ -389,21 +389,38 @@ export class AdvancedCodeAnalyzer {
     const relationships: FileRelationship[] = [];
     let relId = 0;
 
+    console.log('🔗 Generating relationships for', files.length, 'files');
+    
     for (const file of files) {
+      console.log(`📄 Processing file: ${file.name} (${file.path})`);
+      console.log(`  📥 Imports:`, file.imports);
+      
       // File-level import relationships (existing)
       for (const importPath of file.imports) {
-        const targetFile = files.find(f => 
-          f.path.includes(importPath) || f.name === importPath
-        );
+        console.log(`  🔍 Looking for import: ${importPath}`);
+        
+        const targetFile = files.find(f => {
+          const matches = f.path.includes(importPath) || 
+                         f.name === importPath ||
+                         f.relativePath?.includes(importPath);
+          if (matches) {
+            console.log(`    ✅ Found match: ${f.name} (${f.path})`);
+          }
+          return matches;
+        });
         
         if (targetFile) {
-          relationships.push({
+          const relationship = {
             id: `rel-${relId++}`,
             sourceId: file.id,
             targetId: targetFile.id,
-            type: 'import',
+            type: 'import' as const,
             label: 'imports',
-          });
+          };
+          console.log(`    🔗 Created relationship:`, relationship);
+          relationships.push(relationship);
+        } else {
+          console.log(`    ❌ No match found for import: ${importPath}`);
         }
       }
 
@@ -448,6 +465,11 @@ export class AdvancedCodeAnalyzer {
       }
     }
 
+    console.log(`✅ Generated ${relationships.length} total relationships`);
+    relationships.forEach((rel, i) => {
+      console.log(`  ${i + 1}. ${rel.type}: ${rel.sourceId} -> ${rel.targetId} (${rel.label})`);
+    });
+    
     return relationships;
   }
 

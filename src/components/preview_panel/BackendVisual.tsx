@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useEffect, useState } from 'react';
-import { useAtomValue } from 'jotai';
+import React, { useCallback, useMemo, useEffect, useState } from "react";
+import { useAtomValue } from "jotai";
 import ReactFlow, {
   Node,
   Edge,
@@ -8,72 +8,97 @@ import ReactFlow, {
   Background,
   useReactFlow,
   ReactFlowProvider,
-} from 'reactflow';
-// ReactFlow styles will be handled by the library
+} from "reactflow";
+// Note: ReactFlow CSS should be imported in main CSS file
 
-import { selectedAppIdAtom, currentAppAtom } from '../../atoms/appAtoms';
-import { useBackendFiles } from '../../hooks/useBackendFiles';
-import { BackendToolbar } from '../backend_visualizer/BackendToolbar';
-import { FileEditor } from '../backend_visualizer/FileEditor';
-import { EmptyState } from '../backend_visualizer/EmptyState';
-import { VisualizationSettings } from '../backend_visualizer/VisualizationSettings';
-import { nodeTypes } from '../backend_visualizer/nodes/FileNode';
-import { hierarchicalNodeTypes } from '../backend_visualizer/nodes/HierarchicalFileNode';
-import { BackendFile, FileRelationship } from '../../types/backendFile';
-import { visualizationSettingsAtom } from '../../atoms/backendFileAtoms';
+import { selectedAppIdAtom, currentAppAtom } from "../../atoms/appAtoms";
+import { useBackendFiles } from "../../hooks/useBackendFiles";
+import { BackendToolbar } from "../backend_visualizer/BackendToolbar";
+import { FileEditor } from "../backend_visualizer/FileEditor";
+import { EmptyState } from "../backend_visualizer/EmptyState";
+import { VisualizationSettings } from "../backend_visualizer/VisualizationSettings";
+import { nodeTypes } from "../backend_visualizer/nodes/FileNode";
+import { hierarchicalNodeTypes } from "../backend_visualizer/nodes/HierarchicalFileNode";
+
+// Memoize node types to prevent ReactFlow warnings
+const memoizedNodeTypes = { ...nodeTypes, ...hierarchicalNodeTypes };
+import { BackendFile, FileRelationship } from "../../types/backendFile";
+import { visualizationSettingsAtom } from "../../atoms/backendFileAtoms";
 
 // Convert backend files to ReactFlow nodes with settings support
 const useFlowNodes = (files: BackendFile[], settings: any): Node[] => {
   return useMemo(() => {
     let filteredFiles = files;
-    
+
     // Apply filters based on settings
     if (settings.showThirdPartyOnly) {
-      filteredFiles = files.filter(file => 
-        file.codeBlocks?.some(block => block.type === 'third_party') ||
-        file.functions?.some(func => 
-          func.codeBlocks?.some(block => block.type === 'third_party')
-        )
+      filteredFiles = files.filter(
+        (file) =>
+          file.codeBlocks?.some((block) => block.type === "third_party") ||
+          file.functions?.some((func) =>
+            func.codeBlocks?.some((block) => block.type === "third_party"),
+          ),
       );
     }
-    
+
     if (settings.showCriticalOnly) {
-      filteredFiles = filteredFiles.filter(file => 
-        file.codeBlocks?.some(block => block.importance === 'critical') ||
-        file.functions?.some(func => 
-          func.codeBlocks?.some(block => block.importance === 'critical')
-        )
+      filteredFiles = filteredFiles.filter(
+        (file) =>
+          file.codeBlocks?.some((block) => block.importance === "critical") ||
+          file.functions?.some((func) =>
+            func.codeBlocks?.some((block) => block.importance === "critical"),
+          ),
       );
     }
-    
+
     // Choose node type based on display level
-    const nodeType = settings.displayLevel === 'file' ? 'fileNode' : 'hierarchicalFileNode';
-    
-    return filteredFiles.map((file) => ({
+    const nodeType =
+      settings.displayLevel === "file" ? "fileNode" : "hierarchicalFileNode";
+
+    const nodes = filteredFiles.map((file) => ({
       id: file.id,
       type: nodeType,
       position: file.position || { x: 0, y: 0 },
       data: file,
       draggable: true,
     }));
+
+    console.log("📊 Creating", nodes.length, "nodes with type:", nodeType);
+    if (nodes.length > 0) {
+      console.log("📊 First node structure:", {
+        id: nodes[0].id,
+        type: nodes[0].type,
+        position: nodes[0].position,
+        draggable: nodes[0].draggable,
+        data: {
+          name: nodes[0].data.name,
+          type: nodes[0].data.type,
+          path: nodes[0].data.path,
+        },
+      });
+    }
+
+    return nodes;
   }, [files, settings]);
 };
 
 // Convert relationships to ReactFlow edges
 const useFlowEdges = (relationships: FileRelationship[]): Edge[] => {
-  return useMemo(() =>
-    relationships.map((rel) => ({
-      id: rel.id,
-      source: rel.sourceId,
-      target: rel.targetId,
-      label: rel.label,
-      type: 'smoothstep',
-      animated: true,
-      style: { stroke: '#8b5cf6' },
-      labelStyle: { fill: '#64748b', fontSize: 10 },
-      labelBgStyle: { fill: 'white', fillOpacity: 0.8 },
-    }))
-  , [relationships]);
+  return useMemo(
+    () =>
+      relationships.map((rel) => ({
+        id: rel.id,
+        source: rel.sourceId,
+        target: rel.targetId,
+        label: rel.label,
+        type: "smoothstep",
+        animated: true,
+        style: { stroke: "#8b5cf6" },
+        labelStyle: { fill: "#64748b", fontSize: 10 },
+        labelBgStyle: { fill: "white", fillOpacity: 0.8 },
+      })),
+    [relationships],
+  );
 };
 
 // Main visualizer component (wrapped in ReactFlowProvider)
@@ -83,10 +108,10 @@ const BackendVisualizerContent: React.FC = () => {
   const settings = useAtomValue(visualizationSettingsAtom);
   const [showSettings, setShowSettings] = useState(false);
   const { fitView } = useReactFlow();
-  
+
   // Get relative project path from current app
   const projectPath = currentApp?.path || null;
-  
+
   // Use backend files hook
   const {
     files,
@@ -133,56 +158,58 @@ const BackendVisualizerContent: React.FC = () => {
 
     if (scanError) {
       return (
-        <EmptyState 
-          type="error" 
-          error={scanError} 
-          onRefresh={scanFiles}
-        />
+        <EmptyState type="error" error={scanError} onRefresh={scanFiles} />
       );
     }
 
     if (!hasFiles) {
-      return (
-        <EmptyState 
-          type="no-files" 
-          onRefresh={scanFiles}
-        />
-      );
+      return <EmptyState type="no-files" onRefresh={scanFiles} />;
     }
 
     return (
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        nodeTypes={{ ...nodeTypes, ...hierarchicalNodeTypes }}
+        nodeTypes={memoizedNodeTypes}
+        onNodeClick={(event, node) => {
+          console.log("Node clicked:", node);
+          // TODO: Open file details or editor
+        }}
+        nodesDraggable={true}
+        nodesConnectable={false}
+        elementsSelectable={true}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         minZoom={0.1}
         maxZoom={2}
         className="neu-bg"
+        proOptions={{ hideAttribution: true }}
       >
         <Controls className="neu-bg neu-shadow neu-radius" />
-        <MiniMap 
+        <MiniMap
           className="neu-bg neu-shadow neu-radius"
           nodeColor={(node) => {
             const file = node.data as BackendFile;
             switch (file.type) {
-              case 'controller': return '#3b82f6';
-              case 'model': return '#10b981';
-              case 'route': return '#8b5cf6';
-              case 'service': return '#f59e0b';
-              case 'middleware': return '#ef4444';
-              case 'config': return '#6b7280';
-              default: return '#9ca3af';
+              case "controller":
+                return "#3b82f6";
+              case "model":
+                return "#10b981";
+              case "route":
+                return "#8b5cf6";
+              case "service":
+                return "#f59e0b";
+              case "middleware":
+                return "#ef4444";
+              case "config":
+                return "#6b7280";
+              default:
+                return "#9ca3af";
             }
           }}
         />
-        <Background 
-          gap={20} 
-          size={1} 
-          color="var(--neu-border)"
-        />
+        <Background gap={20} size={1} color="var(--neu-border)" />
       </ReactFlow>
     );
   };
@@ -190,22 +217,22 @@ const BackendVisualizerContent: React.FC = () => {
   return (
     <div className="flex flex-col h-full neu-bg">
       {/* Toolbar */}
-      <BackendToolbar 
+      <BackendToolbar
         onRefresh={scanFiles}
         onFitView={hasFiles ? handleFitView : undefined}
       />
-      
+
       {/* Main Content */}
       <div className="flex-1 relative">
         {renderContent()}
-        
+
         {/* Visualization Settings */}
-        <VisualizationSettings 
+        <VisualizationSettings
           isOpen={showSettings}
           onToggle={() => setShowSettings(!showSettings)}
         />
       </div>
-      
+
       {/* File Editor Modal */}
       <FileEditor />
     </div>
